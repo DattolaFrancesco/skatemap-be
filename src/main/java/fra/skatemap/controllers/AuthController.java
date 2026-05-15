@@ -37,8 +37,8 @@ public class AuthController {
             String errors = validation.getAllErrors()
                     .stream()
                     .map(e -> e.getDefaultMessage())
-                    .collect(Collectors.joining(", "));
-            throw new BadRequestException("Dati non validi: " + errors);
+                    .collect(Collectors.joining("\n- ", "- ", ""));
+            throw new BadRequestException(errors);
         }
         User user = this.usersService.save(body);
         return new UsersResponseDTO(user.getId());

@@ -3,17 +3,17 @@ package fra.skatemap.runners;
 import fra.skatemap.entities.Role;
 import fra.skatemap.entities.User;
 import fra.skatemap.entities.UserRole;
-import fra.skatemap.exceptions.BadRequestException;
 import fra.skatemap.repositories.UsersRepository;
 import fra.skatemap.services.RoleService;
 import fra.skatemap.services.UserRoleService;
-import fra.skatemap.services.UsersService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 @Component
+@Order(1)
 public class AdminRunner implements CommandLineRunner {
     private final PasswordEncoder encoder;
     private final RoleService roleService;

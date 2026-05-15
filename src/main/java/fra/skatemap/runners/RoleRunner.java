@@ -3,10 +3,12 @@ package fra.skatemap.runners;
 import fra.skatemap.payloads.RolesDTO;
 import fra.skatemap.services.RoleService;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 
 @Component
+@Order(1)
 public class RoleRunner implements CommandLineRunner {
     private final RoleService roleService;
 
