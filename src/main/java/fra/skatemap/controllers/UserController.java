@@ -41,6 +41,7 @@ public class UserController {
     public void deleteById(@AuthenticationPrincipal User user){
         this.usersService.deleteById(user.getId());
     }
+
     @PutMapping
     public User modifyById(@AuthenticationPrincipal User user, @RequestBody @Validated UsersDTO body, BindingResult validation){
         if (validation.hasErrors()) {
@@ -55,7 +56,7 @@ public class UserController {
 
     @GetMapping()
     public User getUser(@AuthenticationPrincipal User user) {
-       return user;
+        return user;
     }
 
 }

@@ -45,8 +45,8 @@ public class UsersService {
     public User save(UsersDTO usersDTO) {
         if (this.usersRepository.existsByEmail(usersDTO.email())) throw new BadRequestException("email already used");
         User user = new User(usersDTO.username(), usersDTO.email()
-                , this.encoder.encode(usersDTO.password()), usersDTO.name(), usersDTO.surname(), usersDTO.avatar());
-        Role role = this.roleService.findByName(usersDTO.role().trim());
+                , this.encoder.encode(usersDTO.password()), usersDTO.name(), usersDTO.surname());
+        Role role = this.roleService.findByName("user");
         UserRole userRole = new UserRole(user, role);
         User userCreated = this.usersRepository.save(user);
         this.userRoleService.save(userRole);
@@ -59,17 +59,12 @@ public class UsersService {
         this.usersRepository.deleteById(id);
     }
 
-    public User modifyById(User user, UsersDTO usersDTO) {
-        user.setAvatar(usersDTO.avatar());
+   public User modifyById(User user, UsersDTO usersDTO) {
         user.setEmail(usersDTO.email());
         user.setName(usersDTO.name());
         user.setSurname(usersDTO.surname());
         user.setPassword(encoder.encode(usersDTO.password()));
         user.setUsername(usersDTO.username());
-        Role newRole = this.roleService.findByName(usersDTO.role());
-        UserRole userRole = this.userRoleService.findByUserId(user.getId());
-        userRole.setRole(newRole);
-        this.userRoleService.save(userRole);
         return this.usersRepository.save(user);
 
     }

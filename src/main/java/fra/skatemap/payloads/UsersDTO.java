@@ -18,10 +18,6 @@ public record UsersDTO(
         @NotBlank(message = "Name is required")
         String name,
         @NotBlank(message = "Surname is required")
-        String surname,
-        @NotBlank(message = "Avatar is required")
-        String avatar,
-        @NotBlank(message = "Avatar is required")
-        String role
+        String surname
 ) {
 }

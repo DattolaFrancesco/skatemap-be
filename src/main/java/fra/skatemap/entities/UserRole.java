@@ -1,5 +1,6 @@
 package fra.skatemap.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -15,6 +16,7 @@ import java.util.UUID;
 public class UserRole {
     @Id
     @GeneratedValue
+    @JsonIgnore
     private UUID id;
 
     @ManyToOne
@@ -22,6 +24,7 @@ public class UserRole {
     private User user;
 
     @ManyToOne
+    @JsonIgnore
     @JoinColumn(name = "role_id", nullable = false)
     private Role role;
 
