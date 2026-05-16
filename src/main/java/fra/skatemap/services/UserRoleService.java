@@ -1,6 +1,9 @@
 package fra.skatemap.services;
 
+import fra.skatemap.entities.Role;
+import fra.skatemap.entities.User;
 import fra.skatemap.entities.UserRole;
+import fra.skatemap.payloads.RolesDTO;
 import fra.skatemap.repositories.UserRolesRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -13,9 +16,11 @@ import java.util.UUID;
 @Service
 public class UserRoleService {
     private final UserRolesRepository userRolesRepository;
+    private final RoleService roleService;
 
-    public UserRoleService(UserRolesRepository userRolesRepository) {
+    public UserRoleService(UserRolesRepository userRolesRepository, RoleService roleService) {
         this.userRolesRepository = userRolesRepository;
+        this.roleService = roleService;
     }
 
     public UserRole save(UserRole userRole) {
@@ -35,5 +40,12 @@ public class UserRoleService {
     }
     public UserRole findByUserId(UUID id){
         return  this.userRolesRepository.findByUserId(id);
+    }
+    public String modifyRoleByUserId(UUID id, RolesDTO newRole){
+        UserRole found = this.userRolesRepository.findByUserId(id);
+        Role roleFound = this.roleService.findByName(newRole.roleName());
+        found.setRole(roleFound);
+        this.userRolesRepository.save(found);
+        return newRole.roleName()+" is the new role for this user";
     }
 }

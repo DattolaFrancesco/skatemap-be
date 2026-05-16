@@ -3,6 +3,7 @@ package fra.skatemap.controllers;
 import fra.skatemap.entities.User;
 import fra.skatemap.entities.UserRole;
 import fra.skatemap.exceptions.BadRequestException;
+import fra.skatemap.payloads.RolesDTO;
 import fra.skatemap.payloads.UsersDTO;
 import fra.skatemap.services.UserRoleService;
 import fra.skatemap.services.UsersService;
@@ -15,6 +16,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @RestController
@@ -44,6 +46,13 @@ public class UserController {
         return this.userRoleService.findAllUsers(page, size, sortBy);
 
     }
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasAuthority('super_admin')")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteUserById(@PathVariable UUID id){
+        this.usersService.deleteById(id);
+    }
+
     @DeleteMapping
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteById(@AuthenticationPrincipal User user){
@@ -60,6 +69,11 @@ public class UserController {
             throw new BadRequestException("Dati non validi: " + errors);
         }
         return this.usersService.modifyById(user,body);
+    }
+    @PutMapping("/{id}")
+    @PreAuthorize("hasAuthority('super_admin')")
+    public String modifyById(@PathVariable UUID id, @RequestBody RolesDTO role){
+        return this.userRoleService.modifyRoleByUserId(id,role);
     }
 
     @GetMapping()
