@@ -8,6 +8,7 @@ import fra.skatemap.repositories.UserRolesRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -32,7 +33,7 @@ public class UserRoleService {
         return this.userRolesRepository.findAll(pageable);
     }
     public Page<UserRole> findAllUsers(int page, int size, String sortBy) {
-        Pageable pageable = PageRequest.of(page, size);
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy));
         return this.userRolesRepository.findByRoleRoleNameIn(List.of("user","admin"),pageable);
     }
     public void deleteByUserId(UUID id){
