@@ -29,11 +29,19 @@ public class UserController {
     }
 
     @GetMapping("/all")
-    @PreAuthorize("hasAuthority('admin')")
+    @PreAuthorize("hasAuthority('super_admin')")
     public Page<UserRole> findAll(@RequestParam(defaultValue = "0") int page,
-                                  @RequestParam(defaultValue = "3") int size,
+                                  @RequestParam(defaultValue = "50") int size,
                                   @RequestParam(defaultValue = "username") String sortBy) {
         return this.userRoleService.findAll(page, size, sortBy);
+
+    }
+    @GetMapping("/all/users")
+    @PreAuthorize("hasAuthority('super_admin')")
+    public Page<UserRole> findAllUsers(@RequestParam(defaultValue = "0") int page,
+                                  @RequestParam(defaultValue = "50") int size,
+                                  @RequestParam(defaultValue = "username") String sortBy) {
+        return this.userRoleService.findAllUsers(page, size, sortBy);
 
     }
     @DeleteMapping
