@@ -32,7 +32,7 @@ public class Spot {
     private Status_spot status;
     @Column(nullable = false)
     private String risk;
-    @OneToMany(mappedBy = "spot", cascade = CascadeType.ALL,orphanRemoval = true)
+    @OneToMany(mappedBy = "spot")
     private List<Media> media = new ArrayList<>();
     @OneToMany(mappedBy = "spot", cascade = CascadeType.ALL,orphanRemoval = true)
     private List<SpotType> spotTypes;

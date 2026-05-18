@@ -14,7 +14,6 @@ import java.util.UUID;
 @Repository
 public interface MediaRepository extends JpaRepository<Media, UUID> {
     long countBySpot(Spot spot);
-    @Query("SELECT m FROM Media m WHERE m.spot.id = :spotId AND TYPE(m) = :type")
-    Page<Media> findBySpotAndType(UUID spotId, Class<? extends Media> type, Pageable pageable);
     Page<Media> findBySpotId(UUID spotId, Pageable pageable);
+    Page<Media> findBySpotIdAndFormat(UUID id, String format,Pageable pageable);
 }

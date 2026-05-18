@@ -20,13 +20,19 @@ public class Media {
     private UUID id;
     @Column(nullable = false)
     private String link;
+    @Column(nullable = false)
+    private String publicId;
+    @Column(nullable = false)
+    private String format;
     @ManyToOne
     @JsonIgnore
     @JoinColumn(name = "spot_id", nullable = false)
     private Spot spot;
 
-    public Media(Spot spot, String link) {
+    public Media(Spot spot, String link, String publicId, String format) {
         this.spot = spot;
         this.link = link;
+        this.publicId = publicId;
+        this.format = format;
     }
 }

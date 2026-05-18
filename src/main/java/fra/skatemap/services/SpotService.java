@@ -21,12 +21,14 @@ public class SpotService {
     private final SpotRepository spotRepository;
     private final TypeService typeService;
     private final SpotTypeService spotTypeService;
+    private final MediaService mediaService;
 
-    public SpotService(SpotRepository spotRepository,
+    public SpotService(SpotRepository spotRepository, MediaService mediaService,
                        TypeService typeService, SpotTypeService spotTypeService) {
         this.spotRepository = spotRepository;
         this.typeService = typeService;
         this.spotTypeService = spotTypeService;
+        this.mediaService = mediaService;
     }
 
     @Transactional
@@ -78,12 +80,22 @@ public class SpotService {
             return this.spotRepository.findByStatus(status,pageable).map(this::toDTO);
         } else return this.spotRepository.findAll(pageable).map(this::toDTO);
     }
+    @Transactional
     public String deleteById(UUID id){
         SpotResponseDTO spotResponseDTO = findById(id);
+        if(spotResponseDTO.image() != null && !spotResponseDTO.image().isEmpty()){
+        spotResponseDTO.image().forEach(s-> {
+            this.mediaService.deleteById(s.getId());
+            System.out.println(s.getId());
+        });
+        }
+        if(spotResponseDTO.video() != null && !spotResponseDTO.video().isEmpty()){
+        spotResponseDTO.video().forEach(s->this.mediaService.deleteById(s.getId()));
+        }
         this.spotRepository.deleteById(id);
         return spotResponseDTO.name() + " is deleted";
     }
-    public Spot modifyById(UUID id, SpotRequestDTO body){
+    public SpotResponseDTO modifyById(UUID id, SpotRequestDTO body){
         Spot spot = findSpotById(id);
         spot.setName(body.name());
         spot.setLatitude(body.latitude());
@@ -98,6 +110,8 @@ public class SpotService {
                 this.spotTypeService.save(spot, type);
             });
         }
-        return this.spotRepository.save(spot);
+        this.spotRepository.save(spot);
+        return toDTO(spot);
+
     }
 }

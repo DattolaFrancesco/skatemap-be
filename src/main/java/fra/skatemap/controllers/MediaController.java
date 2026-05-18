@@ -1,9 +1,11 @@
 package fra.skatemap.controllers;
 
 import fra.skatemap.entities.Media;
+import fra.skatemap.entities.Spot;
 import fra.skatemap.enums.Status_spot;
 import fra.skatemap.payloads.SpotResponseDTO;
 import fra.skatemap.services.MediaService;
+import fra.skatemap.services.SpotService;
 import org.springframework.data.domain.Page;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
@@ -16,17 +18,21 @@ import java.util.UUID;
 @RequestMapping("/media")
 public class MediaController {
     private final MediaService mediaService;
+    private final SpotService spotService;
 
-    public MediaController(MediaService mediaService) {
+    public MediaController(MediaService mediaService, SpotService spotService) {
         this.mediaService = mediaService;
+        this.spotService = spotService;
     }
     @PostMapping(value="/image/{id}",consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public void  saveImage(@PathVariable UUID id,@RequestParam("file") List<MultipartFile> files ){
-        this.mediaService.saveImage(id,files);
+        Spot spot = this.spotService.findSpotById(id);
+        this.mediaService.saveImage(spot,files);
     }
     @PostMapping(value="/video/{id}",consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public void  saveVideo(@PathVariable UUID id,@RequestParam("file") List<MultipartFile> files ){
-        this.mediaService.saveVideo(id,files);
+        Spot spot = this.spotService.findSpotById(id);
+        this.mediaService.saveVideo(spot,files);
     }
     @DeleteMapping("/{id}")
     public void deleteById(@PathVariable UUID id){

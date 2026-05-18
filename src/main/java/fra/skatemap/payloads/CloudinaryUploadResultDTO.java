@@ -1,6 +1,8 @@
 package fra.skatemap.payloads;
 
-public record CloudinaryDTO(
-        
+public record CloudinaryUploadResultDTO(
+        String url,
+        String publicId,
+        String resourceType
 ) {
 }

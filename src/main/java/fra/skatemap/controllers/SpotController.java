@@ -53,7 +53,7 @@ public class SpotController {
     }
 
     @PutMapping("/{id}")
-    public Spot modifyById(@RequestBody @Validated SpotRequestDTO body, BindingResult validation, @PathVariable UUID id){
+    public SpotResponseDTO modifyById(@RequestBody @Validated SpotRequestDTO body, BindingResult validation, @PathVariable UUID id){
         if (validation.hasErrors()) {
             String errors = validation.getAllErrors()
                     .stream()
