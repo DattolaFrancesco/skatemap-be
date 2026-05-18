@@ -38,7 +38,7 @@ public class AuthController {
                     .stream()
                     .map(e -> e.getDefaultMessage())
                     .collect(Collectors.joining(", "));
-            throw new BadRequestException("Dati non validi: " + errors);
+            throw new BadRequestException("invalid dat: " + errors);
         }
         User user = this.usersService.save(body);
         return new UsersResponseDTO(user.getId());

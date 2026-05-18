@@ -66,7 +66,7 @@ public class UserController {
                     .stream()
                     .map(e -> e.getDefaultMessage())
                     .collect(Collectors.joining(", "));
-            throw new BadRequestException("Dati non validi: " + errors);
+            throw new BadRequestException("invalid data: " + errors);
         }
         return this.usersService.modifyById(user,body);
     }
