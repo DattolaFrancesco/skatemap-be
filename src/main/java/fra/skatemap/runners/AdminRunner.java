@@ -3,17 +3,17 @@ package fra.skatemap.runners;
 import fra.skatemap.entities.Role;
 import fra.skatemap.entities.User;
 import fra.skatemap.entities.UserRole;
-import fra.skatemap.exceptions.BadRequestException;
 import fra.skatemap.repositories.UsersRepository;
 import fra.skatemap.services.RoleService;
 import fra.skatemap.services.UserRoleService;
-import fra.skatemap.services.UsersService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 @Component
+@Order(2)
 public class AdminRunner implements CommandLineRunner {
     private final PasswordEncoder encoder;
     private final RoleService roleService;
@@ -35,7 +35,7 @@ public class AdminRunner implements CommandLineRunner {
          String password = adminPassword;
             User user = new User("adminTest", "adminTest@gmail.com"
                     , this.encoder.encode(password), "test", "testSurname");
-            Role role = this.roleService.findByName("admin");
+            Role role = this.roleService.findByName("super_admin");
             UserRole userRole = new UserRole(user, role);
             if (this.usersRepository.existsByEmail(user.getEmail())) {
                 System.out.println("Admin already exists");
