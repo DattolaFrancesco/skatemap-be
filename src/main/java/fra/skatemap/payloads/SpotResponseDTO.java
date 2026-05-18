@@ -1,6 +1,8 @@
 package fra.skatemap.payloads;
 
+import fra.skatemap.entities.Media;
 import fra.skatemap.enums.Status_spot;
+import org.springframework.data.domain.Page;
 
 import java.util.List;
 import java.util.UUID;
@@ -14,6 +16,6 @@ public record SpotResponseDTO(
         String risk,
         Status_spot status,
         List<String> spotTypes,
-        List<String> images,
-        List<String> videos
+        List<Media> video,
+        List<Media> image
 ) {}

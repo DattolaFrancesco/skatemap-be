@@ -2,6 +2,7 @@ package fra.skatemap.payloads;
 
 import fra.skatemap.enums.Status_spot;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -24,6 +25,7 @@ public record SpotRequestDTO(
         String risk,
 
         @NotNull(message = "Types is required")
+        @NotEmpty(message = "Types is required")
         List<String> types
 ) {
 }

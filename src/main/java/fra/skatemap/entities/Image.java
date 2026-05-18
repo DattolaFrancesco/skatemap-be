@@ -1,29 +1,14 @@
 package fra.skatemap.entities;
 
-import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-
-import java.util.UUID;
+import jakarta.persistence.DiscriminatorValue;
+import jakarta.persistence.Entity;
 
 @Entity
-@Table(name = "spot_images")
-@Getter
-@Setter
-@NoArgsConstructor
-public class Image {
-    @Id
-    @GeneratedValue
-    private UUID id;
-    @Column(nullable = false)
-    private String link;
-    @ManyToOne
-    @JoinColumn(name = "spot_id", nullable = false)
-    private Spot spot;
+@DiscriminatorValue("IMAGE")
+public class Image extends Media {
 
-    public Image(Spot spot, String link) {
-        this.spot = spot;
-        this.link = link;
+    public Image() {}
+    public Image(Spot spot, String url) {
+        super(spot, url);
     }
 }

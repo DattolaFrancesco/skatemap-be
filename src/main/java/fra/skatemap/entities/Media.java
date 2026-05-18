@@ -9,26 +9,24 @@ import lombok.Setter;
 import java.util.UUID;
 
 @Entity
-@Table(name = "spot_types")
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
+@DiscriminatorColumn(name = "media_type")
 @Getter
 @Setter
 @NoArgsConstructor
-public class SpotType {
+public class Media {
     @Id
     @GeneratedValue
     private UUID id;
-
+    @Column(nullable = false)
+    private String link;
     @ManyToOne
     @JsonIgnore
     @JoinColumn(name = "spot_id", nullable = false)
     private Spot spot;
 
-    @ManyToOne
-    @JoinColumn(name = "type_id", nullable = false)
-    private Type type;
-
-    public SpotType(Spot spot, Type type) {
+    public Media(Spot spot, String link) {
         this.spot = spot;
-        this.type = type;
+        this.link = link;
     }
 }

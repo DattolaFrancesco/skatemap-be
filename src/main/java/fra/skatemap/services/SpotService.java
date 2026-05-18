@@ -1,75 +1,32 @@
 package fra.skatemap.services;
 
-import com.cloudinary.utils.ObjectUtils;
-import fra.skatemap.config.CloudinaryConfig;
-import fra.skatemap.entities.Image;
-import fra.skatemap.entities.Spot;
-import fra.skatemap.entities.Type;
-import fra.skatemap.entities.Video;
+import fra.skatemap.entities.*;
+import fra.skatemap.enums.Status_spot;
 import fra.skatemap.exceptions.BadRequestException;
-import fra.skatemap.exceptions.NotFoundException;
 import fra.skatemap.payloads.SpotRequestDTO;
 import fra.skatemap.payloads.SpotResponseDTO;
-import fra.skatemap.repositories.ImageRepository;
 import fra.skatemap.repositories.SpotRepository;
-import fra.skatemap.repositories.SpotTypeRepository;
-import fra.skatemap.repositories.VideoRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 @Service
 public class SpotService {
-    private final CloudinaryConfig cloudinaryConfig;
     private final SpotRepository spotRepository;
-    private final ImageRepository imageRepository;
-    private final VideoRepository videoRepository;
     private final TypeService typeService;
     private final SpotTypeService spotTypeService;
 
-    public SpotService(CloudinaryConfig cloudinaryConfig, SpotRepository spotRepository,
-                       ImageRepository imageRepository, VideoRepository videoRepository,
+    public SpotService(SpotRepository spotRepository,
                        TypeService typeService, SpotTypeService spotTypeService) {
-        this.cloudinaryConfig = cloudinaryConfig;
         this.spotRepository = spotRepository;
-        this.imageRepository = imageRepository;
-        this.videoRepository = videoRepository;
         this.typeService = typeService;
         this.spotTypeService = spotTypeService;
-    }
-    private String uploadImage(MultipartFile file){
-        try {
-            Map uploadResult = this.cloudinaryConfig.cloudinary().uploader().upload(
-                    file.getBytes(),
-                    ObjectUtils.asMap(
-                            "resource_type", "image",
-                            "quality", "auto",
-                            "fetch_format", "auto"
-                    )
-            );
-            return uploadResult.get("secure_url").toString();
-        } catch (IOException e) {
-            throw new BadRequestException("Error uploading the image");
-        }
-    }
-    private String uploadVideo(MultipartFile file){
-        try {
-            Map uploadResult = this.cloudinaryConfig.cloudinary().uploader().upload(
-                    file.getBytes(),
-                    ObjectUtils.asMap(
-                            "resource_type", "video",
-                            "quality", "auto",
-                            "fetch_format", "auto")
-            );
-            return uploadResult.get("secure_url").toString();
-        } catch (IOException e) {
-            throw new BadRequestException("Error uploading the video");
-        }
     }
 
     @Transactional
@@ -89,22 +46,9 @@ public class SpotService {
         for(Type type : types){
             this.spotTypeService.save(spot,type);
         }
-       /* if(spotRequestDTO.images() != null){
-            for (MultipartFile file : spotRequestDTO.images()){
-                String url = uploadImage(file);
-                this.imageRepository.save(new Image(spot,url));
-            }
-        }
-        if(spotRequestDTO.videos() != null){
-            for (MultipartFile file : spotRequestDTO.videos()){
-                String url = uploadVideo(file);
-                this.videoRepository.save(new Video(spot,url));
-            }
-        }*/
         return spot;
     }
-    public SpotResponseDTO findById(UUID id){
-        Spot spot = this.spotRepository.findById(id).orElseThrow(()-> new BadRequestException("spot doens't exist"));
+    private SpotResponseDTO toDTO(Spot spot) {
         return new SpotResponseDTO(
                 spot.getId(),
                 spot.getName(),
@@ -116,12 +60,44 @@ public class SpotService {
                 spot.getSpotTypes().stream()
                         .map(st -> st.getType().getSpotType())
                         .toList(),
-                spot.getImages().stream()
-                        .map(Image::getLink)
-                        .toList(),
-                spot.getVideos().stream()
-                        .map(Video::getLink)
-                        .toList()
-        );
+                spot.getMedia().stream()
+                        .filter(s->s instanceof Video).toList(),
+                spot.getMedia().stream()
+                        .filter(s->s instanceof Image).toList());
+    }
+    public SpotResponseDTO findById(UUID id){
+        Spot spot = this.spotRepository.findById(id).orElseThrow(()-> new BadRequestException("spot doens't exist"));
+        return toDTO(spot);
+    }
+    public Spot findSpotById(UUID id){
+        return this.spotRepository.findById(id).orElseThrow(()-> new BadRequestException("spot doens't exist"));
+    }
+    public Page<SpotResponseDTO> findAllSpotByStatus(Status_spot status,int page, int size, String sortBy ){
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy));
+        if(status !=null){
+            return this.spotRepository.findByStatus(status,pageable).map(this::toDTO);
+        } else return this.spotRepository.findAll(pageable).map(this::toDTO);
+    }
+    public String deleteById(UUID id){
+        SpotResponseDTO spotResponseDTO = findById(id);
+        this.spotRepository.deleteById(id);
+        return spotResponseDTO.name() + " is deleted";
+    }
+    public Spot modifyById(UUID id, SpotRequestDTO body){
+        Spot spot = findSpotById(id);
+        spot.setName(body.name());
+        spot.setLatitude(body.latitude());
+        spot.setLongitude(body.longitude());
+        spot.setDescription(body.description());
+        spot.setRisk(body.risk());
+        if (body.types() != null) {
+            List<SpotType> spotTypes = this.spotTypeService.findBySpotId(id);
+            spotTypes.forEach(s -> this.spotTypeService.deleteById(s.getId()));
+            body.types().forEach(typeName -> {
+                Type type = this.typeService.findByName(typeName);
+                this.spotTypeService.save(spot, type);
+            });
+        }
+        return this.spotRepository.save(spot);
     }
 }

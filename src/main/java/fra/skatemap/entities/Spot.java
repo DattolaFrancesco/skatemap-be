@@ -33,9 +33,7 @@ public class Spot {
     @Column(nullable = false)
     private String risk;
     @OneToMany(mappedBy = "spot", cascade = CascadeType.ALL,orphanRemoval = true)
-    private List<Image> images = new ArrayList<>();
-    @OneToMany(mappedBy = "spot", cascade = CascadeType.ALL,orphanRemoval = true)
-    private List<Video> videos = new ArrayList<>();
+    private List<Media> media = new ArrayList<>();
     @OneToMany(mappedBy = "spot", cascade = CascadeType.ALL,orphanRemoval = true)
     private List<SpotType> spotTypes;
 

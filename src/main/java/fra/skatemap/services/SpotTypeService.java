@@ -8,6 +8,9 @@ import fra.skatemap.repositories.SpotTypeRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+import java.util.UUID;
+
 
 @Service
 public class SpotTypeService {
@@ -20,5 +23,11 @@ public class SpotTypeService {
     public SpotType save(Spot spot, Type type){
         if(this.spotTypeRepository.existsBySpotIdAndTypeId(spot.getId(),type.getId())) throw new BadRequestException("spot type already in the db");
         else  return this.spotTypeRepository.save(new SpotType(spot,type));
+    }
+    public List<SpotType> findBySpotId(UUID id){
+       return this.spotTypeRepository.findBySpotId(id);
+    }
+    public void deleteById(UUID id){
+        this.spotTypeRepository.deleteById(id);
     }
 }
