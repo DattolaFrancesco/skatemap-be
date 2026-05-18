@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 
 @RestControllerAdvice
@@ -38,7 +39,7 @@ public class ErrorsHandler {
     @ExceptionHandler(AuthorizationDeniedException.class)
     @ResponseStatus(HttpStatus.FORBIDDEN) // 403
     public ErrorsDTO handleAuthorizationDeniedEx(AuthorizationDeniedException ex) {
-        return new ErrorsDTO("Non hai i permessi per accedere", LocalDateTime.now());
+        return new ErrorsDTO("you don't have the permission to access", LocalDateTime.now());
     }
 
     @ExceptionHandler(NotFoundException.class)
@@ -49,8 +50,7 @@ public class ErrorsHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<String> handleGeneric(Exception ex) {
-        return ResponseEntity.status(500).body("Errore: " + ex.getMessage());
+        return ResponseEntity.status(500).body("Error: " + ex.getMessage());
     }
-
 }
 
