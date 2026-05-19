@@ -50,7 +50,7 @@ public class SpotService {
         }
         return spot;
     }
-    private SpotResponseDTO toDTO(Spot spot) {
+    public SpotResponseDTO toDTO(Spot spot) {
         return new SpotResponseDTO(
                 spot.getId(),
                 spot.getName(),

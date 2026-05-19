@@ -1,5 +1,6 @@
 package fra.skatemap.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -15,6 +16,7 @@ import java.util.UUID;
 public class Type {
     @Id
     @GeneratedValue
+    @JsonIgnore
     private UUID id;
     @Column(name = "spot_type", nullable = false)
     private String spotType;

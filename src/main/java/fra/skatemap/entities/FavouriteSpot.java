@@ -9,27 +9,26 @@ import lombok.Setter;
 import java.util.UUID;
 
 @Entity
-@Table(name = "spot_types")
+@Table(name = "favourite_spots")
 @Getter
 @Setter
 @NoArgsConstructor
-public class SpotType {
+public class FavouriteSpot {
     @Id
     @GeneratedValue
-    @JsonIgnore
     private UUID id;
 
     @ManyToOne
     @JsonIgnore
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
+
+    @ManyToOne
     @JoinColumn(name = "spot_id", nullable = false)
     private Spot spot;
 
-    @ManyToOne
-    @JoinColumn(name = "type_id", nullable = false)
-    private Type type;
-
-    public SpotType(Spot spot, Type type) {
+    public FavouriteSpot(Spot spot, User user) {
         this.spot = spot;
-        this.type = type;
+        this.user = user;
     }
 }
