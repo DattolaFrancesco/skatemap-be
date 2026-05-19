@@ -20,13 +20,15 @@ public class RoleRunner implements CommandLineRunner {
     public void run(String... args) throws Exception {
 
         RolesDTO admin = new RolesDTO("admin");
+        RolesDTO superAdmin = new RolesDTO("super_admin");
         RolesDTO user = new RolesDTO("user");
-        if(this.roleService.existByName(admin.roleName()) && this.roleService.existByName(user.roleName())){
+        if(this.roleService.existByName(admin.roleName()) && this.roleService.existByName(user.roleName()) && this.roleService.existByName(superAdmin.roleName())){
             System.out.println("already in the db");
         }
         else {
             this.roleService.save(admin);
             this.roleService.save(user);
+            this.roleService.save(superAdmin);
         }
     }
 }

@@ -13,7 +13,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 @Component
-@Order(1)
+@Order(2)
 public class AdminRunner implements CommandLineRunner {
     private final PasswordEncoder encoder;
     private final RoleService roleService;
@@ -35,7 +35,7 @@ public class AdminRunner implements CommandLineRunner {
          String password = adminPassword;
             User user = new User("adminTest", "adminTest@gmail.com"
                     , this.encoder.encode(password), "test", "testSurname");
-            Role role = this.roleService.findByName("admin");
+            Role role = this.roleService.findByName("super_admin");
             UserRole userRole = new UserRole(user, role);
             if (this.usersRepository.existsByEmail(user.getEmail())) {
                 System.out.println("Admin already exists");
