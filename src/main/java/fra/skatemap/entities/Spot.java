@@ -32,17 +32,21 @@ public class Spot {
     private Status_spot status;
     @Column(nullable = false)
     private String risk;
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
     @OneToMany(mappedBy = "spot")
     private List<Media> media = new ArrayList<>();
     @OneToMany(mappedBy = "spot", cascade = CascadeType.ALL,orphanRemoval = true)
     private List<SpotType> spotTypes;
 
-    public Spot(String description, double latitude, double longitude, String name, String risk) {
+    public Spot(String description, double latitude, double longitude, String name, String risk, User user) {
         this.description = description;
         this.latitude = latitude;
         this.longitude = longitude;
         this.name = name;
         this.risk = risk;
         this.status = Status_spot.PENDING;
+        this.user = user;
     }
 }

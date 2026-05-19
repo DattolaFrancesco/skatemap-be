@@ -22,17 +22,21 @@ public class SpotService {
     private final TypeService typeService;
     private final SpotTypeService spotTypeService;
     private final MediaService mediaService;
+    private final UsersService usersService;
 
     public SpotService(SpotRepository spotRepository, MediaService mediaService,
-                       TypeService typeService, SpotTypeService spotTypeService) {
+                       TypeService typeService, SpotTypeService spotTypeService,
+                       UsersService usersService) {
         this.spotRepository = spotRepository;
         this.typeService = typeService;
         this.spotTypeService = spotTypeService;
         this.mediaService = mediaService;
+        this.usersService = usersService;
     }
 
     @Transactional
-    public Spot save(SpotRequestDTO spotRequestDTO) {
+    public Spot save(SpotRequestDTO spotRequestDTO, User user) {
+        this.usersService.findById(user.getId());
         if (spotRepository.existsByName(spotRequestDTO.name())) {
             throw new BadRequestException("A spot with this name already exists");
         }
@@ -41,7 +45,7 @@ public class SpotService {
         }
         Spot spot = new Spot(spotRequestDTO.description(), spotRequestDTO.latitude(),
                 spotRequestDTO.longitude(), spotRequestDTO.name()
-                , spotRequestDTO.risk());
+                , spotRequestDTO.risk(),user);
         this.spotRepository.save(spot);
         List<Type> types = spotRequestDTO.types().stream()
                 .map(name->this.typeService.findByName(name)).toList();

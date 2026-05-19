@@ -1,12 +1,14 @@
 package fra.skatemap.controllers;
 
 import fra.skatemap.entities.Spot;
+import fra.skatemap.entities.User;
 import fra.skatemap.enums.Status_spot;
 import fra.skatemap.exceptions.BadRequestException;
 import fra.skatemap.payloads.SpotRequestDTO;
 import fra.skatemap.payloads.SpotResponseDTO;
 import fra.skatemap.services.SpotService;
 import org.springframework.data.domain.Page;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -24,7 +26,7 @@ public class SpotController {
     }
 
     @PostMapping
-    public Spot save(@RequestBody @Validated SpotRequestDTO body, BindingResult validation){
+    public Spot save(@RequestBody @Validated SpotRequestDTO body, BindingResult validation,@AuthenticationPrincipal User user){
         if (validation.hasErrors()) {
             String errors = validation.getAllErrors()
                     .stream()
@@ -32,7 +34,7 @@ public class SpotController {
                     .collect(Collectors.joining(", "));
             throw new BadRequestException("invalid data: " + errors);
         }
-        return this.spotService.save(body);
+        return this.spotService.save(body,user);
     }
     @GetMapping("/{id}")
     public SpotResponseDTO findById(@PathVariable UUID id){
