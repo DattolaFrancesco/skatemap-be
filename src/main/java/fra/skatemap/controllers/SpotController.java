@@ -36,7 +36,7 @@ public class SpotController {
         }
         return this.spotService.save(body,user);
     }
-    @GetMapping("/{id}")
+    @GetMapping("/single/{id}")
     public SpotResponseDTO findById(@PathVariable UUID id){
         return this.spotService.findById(id);
     }
