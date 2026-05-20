@@ -1,5 +1,6 @@
 package fra.skatemap.entities;
 
+import fra.skatemap.enums.Continents;
 import fra.skatemap.enums.Status_spot;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -32,6 +33,13 @@ public class Spot {
     private Status_spot status;
     @Column(nullable = false)
     private String risk;
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    private Continents continents;
+    @Column(nullable = false)
+    private String city;
+    @Column(nullable = false)
+    private String street;
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
@@ -40,12 +48,16 @@ public class Spot {
     @OneToMany(mappedBy = "spot", cascade = CascadeType.ALL,orphanRemoval = true)
     private List<SpotType> spotTypes;
 
-    public Spot(String description, double latitude, double longitude, String name, String risk, User user) {
+    public Spot(String description, double latitude, double longitude, String name,
+                String risk, User user, Continents continents, String city, String street) {
         this.description = description;
         this.latitude = latitude;
         this.longitude = longitude;
         this.name = name;
         this.risk = risk;
+        this.continents = continents;
+        this.city = city;
+        this.street = street;
         this.status = Status_spot.PENDING;
         this.user = user;
     }

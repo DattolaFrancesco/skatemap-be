@@ -1,6 +1,7 @@
 package fra.skatemap.services;
 
 import fra.skatemap.entities.*;
+import fra.skatemap.enums.Continents;
 import fra.skatemap.enums.Status_spot;
 import fra.skatemap.exceptions.BadRequestException;
 import fra.skatemap.payloads.SpotRequestDTO;
@@ -43,9 +44,23 @@ public class SpotService {
         if (this.spotRepository.existsByLatitudeAndLongitude(spotRequestDTO.latitude(), spotRequestDTO.longitude())) {
             throw new BadRequestException("another spot has the same coordinates");
         }
+        Continents c = Continents.AFRICA ;
+        if(spotRequestDTO.continent() != null){
+          String continent = spotRequestDTO.continent().toLowerCase();
+            c = switch (continent) {
+                case "africa" -> Continents.AFRICA;
+                case "asia" -> Continents.ASIA;
+                case "europe" -> Continents.EUROPE;
+                case "northamerica" -> Continents.NORTHAMERICA;
+                case "southamerica" -> Continents.SOUTHAMERICA;
+                case "oceania" -> Continents.OCEANIA;
+                case "antartica" -> Continents.ANTARTICA;
+                default -> c;
+            };
+        }
         Spot spot = new Spot(spotRequestDTO.description(), spotRequestDTO.latitude(),
                 spotRequestDTO.longitude(), spotRequestDTO.name()
-                , spotRequestDTO.risk(),user);
+                , spotRequestDTO.risk().toUpperCase(),user,c,spotRequestDTO.city().toUpperCase(),spotRequestDTO.street().toUpperCase());
         this.spotRepository.save(spot);
         List<Type> types = spotRequestDTO.types().stream()
                 .map(name->this.typeService.findByName(name)).toList();
@@ -105,7 +120,24 @@ public class SpotService {
         spot.setLatitude(body.latitude());
         spot.setLongitude(body.longitude());
         spot.setDescription(body.description());
-        spot.setRisk(body.risk());
+        spot.setRisk(body.risk().toUpperCase());
+        spot.setCity(body.city().toUpperCase());
+        spot.setStreet(body.street().toUpperCase());
+        if(body.continent() != null){
+            Continents c = Continents.AFRICA ;
+            String continent = body.continent().toLowerCase();
+            c = switch (continent) {
+                case "africa" -> Continents.AFRICA;
+                case "asia" -> Continents.ASIA;
+                case "europe" -> Continents.EUROPE;
+                case "northamerica" -> Continents.NORTHAMERICA;
+                case "southamerica" -> Continents.SOUTHAMERICA;
+                case "oceania" -> Continents.OCEANIA;
+                case "antartica" -> Continents.ANTARTICA;
+                default -> c;
+            };
+            spot.setContinents(c);
+        }
         if (body.types() != null) {
             List<SpotType> spotTypes = this.spotTypeService.findBySpotId(id);
             spotTypes.forEach(s -> this.spotTypeService.deleteById(s.getId()));
