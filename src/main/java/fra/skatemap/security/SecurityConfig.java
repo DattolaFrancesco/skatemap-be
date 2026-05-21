@@ -2,6 +2,7 @@ package fra.skatemap.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -29,7 +30,8 @@ public class SecurityConfig {
                 .formLogin(f -> f.disable())
                 .csrf(c -> c.disable())
                 .authorizeHttpRequests(req -> req
-                        .requestMatchers("/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/spots/**").permitAll()
+                        .requestMatchers("/auth/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(tokenFilter, UsernamePasswordAuthenticationFilter.class)

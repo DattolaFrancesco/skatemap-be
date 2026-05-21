@@ -21,7 +21,7 @@ public class SpotTypeRunner implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        List<String> types = List.of("rail", "ledge", "stair", "skatepark", "street");
+        List<String> types = List.of("RAIL", "LEDGE", "STAIR", "SKATEPARK", "STREET");
        for(String type : types ){
            try{
                this.typeService.save(new TypeDTO(type));
