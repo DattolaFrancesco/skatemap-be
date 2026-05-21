@@ -94,7 +94,7 @@ public class MediaService {
         if (files == null || files.isEmpty()) {
             return;
         }
-        if(this.mediaRepository.countBySpot(spot)+ files.size()>5) throw new BadRequestException("the maximum photo for every spot is 10");
+        //if(this.mediaRepository.countBySpot(spot)+ files.size()>5) throw new BadRequestException("the maximum video for every spot is 5");
         Tika tika = new Tika();
         for (MultipartFile file : files) {
             try {
