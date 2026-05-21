@@ -44,14 +44,14 @@ public class SpotController {
         return this.spotService.findById(id);
     }*/
 
-    @GetMapping("/all")
+    /*@GetMapping("/all")
     public Page<SpotResponseDTO> findAllSpotByStatus(@RequestParam(required = false)Status_spot status,
                                           @RequestParam(defaultValue = "0") int page,
                                           @RequestParam(defaultValue = "50") int size,
                                           @RequestParam(defaultValue = "name") String sortBy) {
         return this.spotService.findAllSpotByStatus(status,page,size,sortBy);
-    }
-    @GetMapping
+    }*/
+    @GetMapping("/all")
     public Page<SpotResponseDTO> filterSpots(
             @RequestParam(required = false) List<String> continent,
             @RequestParam(required = false) List<String> risk,
