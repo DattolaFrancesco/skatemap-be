@@ -51,8 +51,8 @@ public class SpotService {
                 case "africa" -> Continents.AFRICA;
                 case "asia" -> Continents.ASIA;
                 case "europe" -> Continents.EUROPE;
-                case "northamerica" -> Continents.NORTHAMERICA;
-                case "southamerica" -> Continents.SOUTHAMERICA;
+                case "north america" -> Continents.NORTHAMERICA;
+                case "south america" -> Continents.SOUTHAMERICA;
                 case "oceania" -> Continents.OCEANIA;
                 case "antartica" -> Continents.ANTARTICA;
                 default -> c;
