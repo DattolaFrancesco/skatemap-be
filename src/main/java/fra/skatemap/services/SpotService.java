@@ -76,6 +76,9 @@ public class SpotService {
                 spot.getDescription(),
                 spot.getLatitude(),
                 spot.getLongitude(),
+                spot.getContinents().toString(),
+                spot.getCity(),
+                spot.getStreet(),
                 spot.getRisk(),
                 spot.getStatus(),
                 spot.getSpotTypes().stream()
