@@ -63,7 +63,7 @@ public class SpotService {
                 , spotRequestDTO.risk().toUpperCase(),user,c,spotRequestDTO.city().toUpperCase(),spotRequestDTO.street().toUpperCase());
         this.spotRepository.save(spot);
         List<Type> types = spotRequestDTO.types().stream()
-                .map(name->this.typeService.findByName(name)).toList();
+                .map(name->this.typeService.findByName(name.toLowerCase())).toList();
         for(Type type : types){
             this.spotTypeService.save(spot,type);
         }

@@ -26,7 +26,7 @@ public class Spot {
     private double latitude;
     @Column(nullable = false)
     private double longitude;
-    @Column(nullable = false)
+    @Column(nullable = false, length = 500)
     private String description;
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
