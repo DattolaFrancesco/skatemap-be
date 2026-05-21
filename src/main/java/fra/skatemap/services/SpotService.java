@@ -11,6 +11,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -152,5 +153,10 @@ public class SpotService {
         this.spotRepository.save(spot);
         return toDTO(spot);
 
+    }
+    public Page<SpotResponseDTO> filterSpots(Specification<Spot> spot, int page, int size, String sortBy){
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy));
+        Page<Spot> spots = this.spotRepository.findAll(spot,pageable);
+        return spots.map(s-> toDTO(s));
     }
 }
