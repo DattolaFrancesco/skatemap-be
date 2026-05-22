@@ -56,6 +56,7 @@ public class SpotController {
             @RequestParam(required = false) List<String> continent,
             @RequestParam(required = false) List<String> risk,
             @RequestParam(required = false) List<String> type,
+            @RequestParam(required = false) String search,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "50") int size,
             @RequestParam(defaultValue = "name") String sortBy
@@ -63,7 +64,8 @@ public class SpotController {
         Specification<Spot> spec = Specification
                 .where(SpotSpecification.hasContinent(continent))
                 .and(SpotSpecification.hasRisk(risk))
-                .and(SpotSpecification.hasType(type));
+                .and(SpotSpecification.hasType(type))
+                .and(SpotSpecification.hasSearch(search));
         return this.spotService.filterSpots(spec,page,size,sortBy);
     }
 
