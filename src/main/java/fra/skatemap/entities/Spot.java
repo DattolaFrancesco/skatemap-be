@@ -37,6 +37,8 @@ public class Spot {
     @Enumerated(EnumType.STRING)
     private Continents continents;
     @Column(nullable = false)
+    private String country;
+    @Column(nullable = false)
     private String city;
     @Column(nullable = false)
     private String street;
@@ -49,13 +51,14 @@ public class Spot {
     private List<SpotType> spotTypes;
 
     public Spot(String description, double latitude, double longitude, String name,
-                String risk, User user, Continents continents, String city, String street) {
+                String risk, User user, Continents continents,String country, String city, String street) {
         this.description = description;
         this.latitude = latitude;
         this.longitude = longitude;
         this.name = name;
         this.risk = risk;
         this.continents = continents;
+        this.country = country;
         this.city = city;
         this.street = street;
         this.status = Status_spot.PENDING;

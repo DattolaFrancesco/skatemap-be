@@ -43,8 +43,9 @@ public class SpotSpecification {
             Predicate cityPredicate = criteriaBuilder.like(criteriaBuilder.lower(root.get("city")),"%"+search.toLowerCase()+"%");
             Predicate streetPredicate = criteriaBuilder.like(criteriaBuilder.lower(root.get("street")),"%"+search.toLowerCase()+"%");
             Predicate namePredicate = criteriaBuilder.like(criteriaBuilder.lower(root.get("name")),"%"+search.toLowerCase()+"%");
+            Predicate countryPredicate = criteriaBuilder.like(criteriaBuilder.lower(root.get("country")),"%"+search.toLowerCase()+"%");
             Predicate continentPredicate = criteriaBuilder.like(criteriaBuilder.lower(root.get("continents")),"%"+search.toLowerCase()+"%");
-            return criteriaBuilder.or(cityPredicate,streetPredicate,namePredicate,continentPredicate);
+            return criteriaBuilder.or(cityPredicate,streetPredicate,namePredicate,countryPredicate,continentPredicate);
         };
     }
 }
