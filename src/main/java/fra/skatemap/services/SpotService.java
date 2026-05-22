@@ -11,6 +11,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -51,8 +52,8 @@ public class SpotService {
                 case "africa" -> Continents.AFRICA;
                 case "asia" -> Continents.ASIA;
                 case "europe" -> Continents.EUROPE;
-                case "northamerica" -> Continents.NORTHAMERICA;
-                case "southamerica" -> Continents.SOUTHAMERICA;
+                case "north america" -> Continents.NORTHAMERICA;
+                case "south america" -> Continents.SOUTHAMERICA;
                 case "oceania" -> Continents.OCEANIA;
                 case "antartica" -> Continents.ANTARTICA;
                 default -> c;
@@ -60,10 +61,11 @@ public class SpotService {
         }
         Spot spot = new Spot(spotRequestDTO.description(), spotRequestDTO.latitude(),
                 spotRequestDTO.longitude(), spotRequestDTO.name()
-                , spotRequestDTO.risk().toUpperCase(),user,c,spotRequestDTO.city().toUpperCase(),spotRequestDTO.street().toUpperCase());
+                , spotRequestDTO.risk().toUpperCase()
+                ,user,c, spotRequestDTO.country().toUpperCase(),spotRequestDTO.city().toUpperCase(),spotRequestDTO.street().toUpperCase());
         this.spotRepository.save(spot);
         List<Type> types = spotRequestDTO.types().stream()
-                .map(name->this.typeService.findByName(name)).toList();
+                .map(name->this.typeService.findByName(name.toUpperCase())).toList();
         for(Type type : types){
             this.spotTypeService.save(spot,type);
         }
@@ -76,6 +78,10 @@ public class SpotService {
                 spot.getDescription(),
                 spot.getLatitude(),
                 spot.getLongitude(),
+                spot.getContinents().toString(),
+                spot.getCountry(),
+                spot.getCity(),
+                spot.getStreet(),
                 spot.getRisk(),
                 spot.getStatus(),
                 spot.getSpotTypes().stream()
@@ -121,6 +127,7 @@ public class SpotService {
         spot.setLongitude(body.longitude());
         spot.setDescription(body.description());
         spot.setRisk(body.risk().toUpperCase());
+        spot.setCountry(body.country().toUpperCase());
         spot.setCity(body.city().toUpperCase());
         spot.setStreet(body.street().toUpperCase());
         if(body.continent() != null){
@@ -149,5 +156,10 @@ public class SpotService {
         this.spotRepository.save(spot);
         return toDTO(spot);
 
+    }
+    public Page<SpotResponseDTO> filterSpots(Specification<Spot> spot, int page, int size, String sortBy){
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy));
+        Page<Spot> spots = this.spotRepository.findAll(spot,pageable);
+        return spots.map(s-> toDTO(s));
     }
 }
