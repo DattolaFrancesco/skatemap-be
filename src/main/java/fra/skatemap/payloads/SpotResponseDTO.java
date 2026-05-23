@@ -14,6 +14,7 @@ public record SpotResponseDTO(
         double latitude,
         double longitude,
         String continents,
+        String country,
         String city,
         String street,
         String risk,

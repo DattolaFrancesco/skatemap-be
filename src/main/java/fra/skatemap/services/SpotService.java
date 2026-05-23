@@ -61,7 +61,8 @@ public class SpotService {
         }
         Spot spot = new Spot(spotRequestDTO.description(), spotRequestDTO.latitude(),
                 spotRequestDTO.longitude(), spotRequestDTO.name()
-                , spotRequestDTO.risk().toUpperCase(),user,c,spotRequestDTO.city().toUpperCase(),spotRequestDTO.street().toUpperCase());
+                , spotRequestDTO.risk().toUpperCase()
+                ,user,c, spotRequestDTO.country().toUpperCase(),spotRequestDTO.city().toUpperCase(),spotRequestDTO.street().toUpperCase());
         this.spotRepository.save(spot);
         List<Type> types = spotRequestDTO.types().stream()
                 .map(name->this.typeService.findByName(name.toUpperCase())).toList();
@@ -78,6 +79,7 @@ public class SpotService {
                 spot.getLatitude(),
                 spot.getLongitude(),
                 spot.getContinents().toString(),
+                spot.getCountry(),
                 spot.getCity(),
                 spot.getStreet(),
                 spot.getRisk(),
@@ -125,6 +127,7 @@ public class SpotService {
         spot.setLongitude(body.longitude());
         spot.setDescription(body.description());
         spot.setRisk(body.risk().toUpperCase());
+        spot.setCountry(body.country().toUpperCase());
         spot.setCity(body.city().toUpperCase());
         spot.setStreet(body.street().toUpperCase());
         if(body.continent() != null){

@@ -24,6 +24,8 @@ public record SpotRequestDTO(
         String risk,
         @NotBlank(message = "Continent is required")
         String continent,
+        @NotBlank(message = "Country is required")
+        String country,
         @NotBlank(message = "City is required")
         String city,
         @NotBlank(message = "Street is required")

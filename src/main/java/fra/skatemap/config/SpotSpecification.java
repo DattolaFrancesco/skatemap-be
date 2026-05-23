@@ -37,4 +37,15 @@ public class SpotSpecification {
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
         };
     }
+    public static Specification<Spot> hasSearch(String search){
+        return(root, query, criteriaBuilder) -> {
+            if (search == null || search.isEmpty()) return null;
+            Predicate cityPredicate = criteriaBuilder.like(criteriaBuilder.lower(root.get("city")),"%"+search.toLowerCase()+"%");
+            Predicate streetPredicate = criteriaBuilder.like(criteriaBuilder.lower(root.get("street")),"%"+search.toLowerCase()+"%");
+            Predicate namePredicate = criteriaBuilder.like(criteriaBuilder.lower(root.get("name")),"%"+search.toLowerCase()+"%");
+            Predicate countryPredicate = criteriaBuilder.like(criteriaBuilder.lower(root.get("country")),"%"+search.toLowerCase()+"%");
+            Predicate continentPredicate = criteriaBuilder.like(criteriaBuilder.lower(root.get("continents")),"%"+search.toLowerCase()+"%");
+            return criteriaBuilder.or(cityPredicate,streetPredicate,namePredicate,countryPredicate,continentPredicate);
+        };
+    }
 }
