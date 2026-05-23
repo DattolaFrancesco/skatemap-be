@@ -162,4 +162,21 @@ public class SpotService {
         Page<Spot> spots = this.spotRepository.findAll(spot,pageable);
         return spots.map(s-> toDTO(s));
     }
+    public Page<SpotResponseDTO> getOwnSpots(User user, int page, int size, String sortBy, String status){
+            if(user == null) throw new BadRequestException("user not authenticated");
+            Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy));
+            String rightStatus = status.toUpperCase();
+            boolean validStatus = status != null && !status.isBlank() &&
+                    (!status.equals("PENDING") && !status.equals("APPROVED") && !status.equals("UNAPPROVED"));
+            if (!validStatus)return this.spotRepository.findByUserId(user.getId(),pageable).map(this::toDTO);
+            else{
+                 Status_spot statusSpot = switch (rightStatus){
+                    case "PENDING" -> Status_spot.PENDING;
+                    case "APPROVED" -> Status_spot.APPROVED;
+                    case "UNAPPROVED" -> Status_spot.UNAPPROVED;
+                     default -> Status_spot.APPROVED;
+                };
+                return this.spotRepository.findByStatusAndUserId(statusSpot,user.getId(),pageable).map(this::toDTO);
+            }
+    }
 }

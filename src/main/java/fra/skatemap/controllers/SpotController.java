@@ -39,18 +39,6 @@ public class SpotController {
         }
         return this.spotService.save(body,user);
     }
-   /* @GetMapping("/single/{id}")
-    public SpotResponseDTO findById(@PathVariable UUID id){
-        return this.spotService.findById(id);
-    }*/
-
-    /*@GetMapping("/all")
-    public Page<SpotResponseDTO> findAllSpotByStatus(@RequestParam(required = false)Status_spot status,
-                                          @RequestParam(defaultValue = "0") int page,
-                                          @RequestParam(defaultValue = "50") int size,
-                                          @RequestParam(defaultValue = "name") String sortBy) {
-        return this.spotService.findAllSpotByStatus(status,page,size,sortBy);
-    }*/
     @GetMapping("/all")
     public Page<SpotResponseDTO> filterSpots(
             @RequestParam(required = false) List<String> continent,
@@ -67,6 +55,16 @@ public class SpotController {
                 .and(SpotSpecification.hasType(type))
                 .and(SpotSpecification.hasSearch(search));
         return this.spotService.filterSpots(spec,page,size,sortBy);
+    }
+    @GetMapping("/own")
+    public Page<SpotResponseDTO> getOwnSpots(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "") String status,
+            @RequestParam(defaultValue = "500") int size,
+            @RequestParam(defaultValue = "name") String sortBy,
+            @AuthenticationPrincipal User user
+    ) {
+        return this.spotService.getOwnSpots(user,page,size,sortBy, status);
     }
     @GetMapping("/globe/all")
     public Page<SpotResponseDTO> filterSpotsGlobe(
