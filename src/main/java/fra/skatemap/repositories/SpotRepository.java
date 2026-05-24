@@ -15,4 +15,6 @@ public interface SpotRepository  extends JpaRepository<Spot, UUID>, JpaSpecifica
     boolean existsByName(String name);
     boolean existsByLatitudeAndLongitude(double latitude, double longitude);
     Page<Spot> findByStatus(Status_spot status, Pageable pageable);
+    Page<Spot> findByStatusAndUserId(Status_spot status,UUID id, Pageable pageable);
+    Page<Spot> findByUserId(UUID id, Pageable pageable);
 }

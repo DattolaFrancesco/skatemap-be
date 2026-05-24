@@ -4,6 +4,7 @@ import fra.skatemap.entities.*;
 import fra.skatemap.enums.Continents;
 import fra.skatemap.enums.Status_spot;
 import fra.skatemap.exceptions.BadRequestException;
+import fra.skatemap.exceptions.NotFoundException;
 import fra.skatemap.payloads.SpotRequestDTO;
 import fra.skatemap.payloads.SpotResponseDTO;
 import fra.skatemap.repositories.SpotRepository;
@@ -161,5 +162,32 @@ public class SpotService {
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy));
         Page<Spot> spots = this.spotRepository.findAll(spot,pageable);
         return spots.map(s-> toDTO(s));
+    }
+    public Page<SpotResponseDTO> getOwnSpots(User user, int page, int size, String sortBy, String status){
+            if(user == null) throw new BadRequestException("user not authenticated");
+            Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy));
+            String rightStatus = status.toUpperCase();
+            boolean validStatus = status != null && !status.isBlank() &&
+                    (!status.equals("PENDING") && !status.equals("APPROVED") && !status.equals("UNAPPROVED"));
+            if (!validStatus)return this.spotRepository.findByUserId(user.getId(),pageable).map(this::toDTO);
+            else{
+                 Status_spot statusSpot = switch (rightStatus){
+                    case "PENDING" -> Status_spot.PENDING;
+                    case "APPROVED" -> Status_spot.APPROVED;
+                    case "UNAPPROVED" -> Status_spot.UNAPPROVED;
+                     default -> Status_spot.APPROVED;
+                };
+                return this.spotRepository.findByStatusAndUserId(statusSpot,user.getId(),pageable).map(this::toDTO);
+            }
+    }
+    public Page<SpotResponseDTO> getPendingSpots( int page, int size, String sortBy){
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy));
+        return this.spotRepository.findByStatus(Status_spot.PENDING,pageable).map(this::toDTO);
+    }
+    public SpotResponseDTO modifyStatus(UUID id, String status) {
+        Spot spot = this.spotRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Spot not found"));
+        spot.setStatus(Status_spot.valueOf(status.toUpperCase()));
+        return toDTO(this.spotRepository.save(spot));
     }
 }
