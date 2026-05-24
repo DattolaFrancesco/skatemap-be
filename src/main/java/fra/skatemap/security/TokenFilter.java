@@ -65,7 +65,8 @@ public class TokenFilter extends OncePerRequestFilter {
                 || matcher.match("/spots/all/**", path)
                 || matcher.match("/spots/approved/all/**", path)
                 || matcher.match("/spots/globe/approved/all/**", path)
-                || matcher.match("/spots/single/**", path);
+                || matcher.match("/spots/single/**", path)
+                || matcher.match("/bot/**", path);
 
     }
 
