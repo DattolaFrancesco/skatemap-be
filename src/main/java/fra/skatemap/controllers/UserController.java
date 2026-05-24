@@ -33,7 +33,7 @@ public class UserController {
     @GetMapping("/all")
     @PreAuthorize("hasAuthority('super_admin')")
     public Page<UserRole> findAll(@RequestParam(defaultValue = "0") int page,
-                                  @RequestParam(defaultValue = "50") int size,
+                                  @RequestParam(defaultValue = "500") int size,
                                   @RequestParam(defaultValue = "username") String sortBy) {
         return this.userRoleService.findAll(page, size, sortBy);
 
@@ -41,7 +41,7 @@ public class UserController {
     @GetMapping("/all/users")
     @PreAuthorize("hasAuthority('super_admin')")
     public Page<UserRole> findAllUsers(@RequestParam(defaultValue = "0") int page,
-                                  @RequestParam(defaultValue = "50") int size,
+                                  @RequestParam(defaultValue = "500") int size,
                                   @RequestParam(defaultValue = "user.name") String sortBy) {
         return this.userRoleService.findAllUsers(page, size, sortBy);
 
