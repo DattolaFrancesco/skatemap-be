@@ -10,6 +10,7 @@ import fra.skatemap.payloads.SpotResponseDTO;
 import fra.skatemap.services.SpotService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
@@ -39,18 +40,6 @@ public class SpotController {
         }
         return this.spotService.save(body,user);
     }
-   /* @GetMapping("/single/{id}")
-    public SpotResponseDTO findById(@PathVariable UUID id){
-        return this.spotService.findById(id);
-    }*/
-
-    /*@GetMapping("/all")
-    public Page<SpotResponseDTO> findAllSpotByStatus(@RequestParam(required = false)Status_spot status,
-                                          @RequestParam(defaultValue = "0") int page,
-                                          @RequestParam(defaultValue = "50") int size,
-                                          @RequestParam(defaultValue = "name") String sortBy) {
-        return this.spotService.findAllSpotByStatus(status,page,size,sortBy);
-    }*/
     @GetMapping("/all")
     public Page<SpotResponseDTO> filterSpots(
             @RequestParam(required = false) List<String> continent,
@@ -67,6 +56,30 @@ public class SpotController {
                 .and(SpotSpecification.hasType(type))
                 .and(SpotSpecification.hasSearch(search));
         return this.spotService.filterSpots(spec,page,size,sortBy);
+    }
+    @GetMapping("/{id}")
+    public SpotResponseDTO getSpot(@PathVariable UUID id){
+        return this.spotService.findById(id);
+    }
+    @GetMapping("/own")
+    public Page<SpotResponseDTO> getOwnSpots(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "") String status,
+            @RequestParam(defaultValue = "500") int size,
+            @RequestParam(defaultValue = "name") String sortBy,
+            @AuthenticationPrincipal User user
+    ) {
+        return this.spotService.getOwnSpots(user,page,size,sortBy, status);
+    }
+    @GetMapping("/pending")
+    @PreAuthorize("hasAuthority('admin') || hasAuthority('super_admin')")
+    public Page<SpotResponseDTO> getPendingSpots(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "500") int size,
+            @RequestParam(defaultValue = "name") String sortBy,
+            @AuthenticationPrincipal User user
+    ) {
+        return this.spotService.getPendingSpots(page,size,sortBy);
     }
     @GetMapping("/globe/all")
     public Page<SpotResponseDTO> filterSpotsGlobe(
@@ -101,6 +114,11 @@ public class SpotController {
             throw new BadRequestException("invalid data: " + errors);
         }
         return this.spotService.modifyById(id,body);
+    }
+    @PatchMapping("/status/{id}")
+    @PreAuthorize("hasAuthority('admin') || hasAuthority('super_admin')")
+    public SpotResponseDTO modifyStatus(@PathVariable UUID id, @RequestParam String status) {
+        return this.spotService.modifyStatus(id, status);
     }
 
 }
