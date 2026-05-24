@@ -4,6 +4,7 @@ import fra.skatemap.entities.*;
 import fra.skatemap.enums.Continents;
 import fra.skatemap.enums.Status_spot;
 import fra.skatemap.exceptions.BadRequestException;
+import fra.skatemap.exceptions.NotFoundException;
 import fra.skatemap.payloads.SpotRequestDTO;
 import fra.skatemap.payloads.SpotResponseDTO;
 import fra.skatemap.repositories.SpotRepository;
@@ -178,5 +179,15 @@ public class SpotService {
                 };
                 return this.spotRepository.findByStatusAndUserId(statusSpot,user.getId(),pageable).map(this::toDTO);
             }
+    }
+    public Page<SpotResponseDTO> getPendingSpots( int page, int size, String sortBy){
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy));
+        return this.spotRepository.findByStatus(Status_spot.PENDING,pageable).map(this::toDTO);
+    }
+    public SpotResponseDTO modifyStatus(UUID id, String status) {
+        Spot spot = this.spotRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Spot not found"));
+        spot.setStatus(Status_spot.valueOf(status.toUpperCase()));
+        return toDTO(this.spotRepository.save(spot));
     }
 }
