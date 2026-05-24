@@ -49,6 +49,8 @@ public class Spot {
     private List<Media> media = new ArrayList<>();
     @OneToMany(mappedBy = "spot", cascade = CascadeType.ALL,orphanRemoval = true)
     private List<SpotType> spotTypes;
+    @OneToMany(mappedBy = "spot", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<FavouriteSpot> favourites = new ArrayList<>();
 
     public Spot(String description, double latitude, double longitude, String name,
                 String risk, User user, Continents continents,String country, String city, String street) {
