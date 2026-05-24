@@ -31,7 +31,7 @@ public class FavouriteSpotController {
     @GetMapping("/all")
     public Page<SpotResponseDTO> findFav(@AuthenticationPrincipal User user,
                                          @RequestParam(defaultValue = "0") int page,
-                                         @RequestParam(defaultValue = "50") int size,
+                                         @RequestParam(defaultValue = "500") int size,
                                          @RequestParam(defaultValue = "spot.name") String sortBy){
         return this.favouriteSpotService.findFav(user, page, size, sortBy);
     }

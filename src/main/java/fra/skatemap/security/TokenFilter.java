@@ -63,7 +63,8 @@ public class TokenFilter extends OncePerRequestFilter {
         String path = request.getServletPath();
         return matcher.match("/auth/**", path)
                 || matcher.match("/spots/all/**", path)
-                || matcher.match("/spots/globe/all/**", path)
+                || matcher.match("/spots/approved/all/**", path)
+                || matcher.match("/spots/globe/approved/all/**", path)
                 || matcher.match("/spots/single/**", path);
 
     }

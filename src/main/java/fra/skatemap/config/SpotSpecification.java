@@ -24,6 +24,12 @@ public class SpotSpecification {
             return root.get("risk").in(risk);
         };
     }
+    public static Specification<Spot> hasStatus(String status){
+        return(root, query, criteriaBuilder) -> {
+            if(status == null) return null;
+            return criteriaBuilder.equal(root.get("status"), status);
+        };
+    }
     public static Specification<Spot> hasType(List<String> type){
         return(root, query, criteriaBuilder) -> {
             if (type == null || type.isEmpty()) return null;

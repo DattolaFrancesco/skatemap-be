@@ -57,6 +57,42 @@ public class SpotController {
                 .and(SpotSpecification.hasSearch(search));
         return this.spotService.filterSpots(spec,page,size,sortBy);
     }
+    @GetMapping("/globe/approved/all")
+    public Page<SpotResponseDTO> filterGlobeApprovedSpots(
+            @RequestParam(required = false) List<String> continent,
+            @RequestParam(required = false) List<String> risk,
+            @RequestParam(required = false) List<String> type,
+            @RequestParam(required = false) String search,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "1000") int size,
+            @RequestParam(defaultValue = "name") String sortBy
+    ) {
+        Specification<Spot> spec = Specification
+                .where(SpotSpecification.hasStatus("APPROVED"))
+                .and(SpotSpecification.hasContinent(continent))
+                .and(SpotSpecification.hasRisk(risk))
+                .and(SpotSpecification.hasType(type))
+                .and(SpotSpecification.hasSearch(search));
+        return this.spotService.filterSpots(spec,page,size,sortBy);
+    }
+    @GetMapping("/approved/all")
+    public Page<SpotResponseDTO> filterApprovedSpots(
+            @RequestParam(required = false) List<String> continent,
+            @RequestParam(required = false) List<String> risk,
+            @RequestParam(required = false) List<String> type,
+            @RequestParam(required = false) String search,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "50") int size,
+            @RequestParam(defaultValue = "name") String sortBy
+    ) {
+        Specification<Spot> spec = Specification
+                .where(SpotSpecification.hasStatus("APPROVED"))
+                .and(SpotSpecification.hasContinent(continent))
+                .and(SpotSpecification.hasRisk(risk))
+                .and(SpotSpecification.hasType(type))
+                .and(SpotSpecification.hasSearch(search));
+        return this.spotService.filterSpots(spec,page,size,sortBy);
+    }
     @GetMapping("/{id}")
     public SpotResponseDTO getSpot(@PathVariable UUID id){
         return this.spotService.findById(id);
@@ -81,24 +117,6 @@ public class SpotController {
     ) {
         return this.spotService.getPendingSpots(page,size,sortBy);
     }
-    @GetMapping("/globe/all")
-    public Page<SpotResponseDTO> filterSpotsGlobe(
-            @RequestParam(required = false) List<String> continent,
-            @RequestParam(required = false) List<String> risk,
-            @RequestParam(required = false) List<String> type,
-            @RequestParam(required = false) String search,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "1000") int size,
-            @RequestParam(defaultValue = "name") String sortBy
-    ) {
-        Specification<Spot> spec = Specification
-                .where(SpotSpecification.hasContinent(continent))
-                .and(SpotSpecification.hasRisk(risk))
-                .and(SpotSpecification.hasType(type))
-                .and(SpotSpecification.hasSearch(search));
-        return this.spotService.filterSpots(spec,page,size,sortBy);
-    }
-
     @DeleteMapping("/{id}")
     public String deleteById(@PathVariable UUID id){
         return this.spotService.deleteById(id);
