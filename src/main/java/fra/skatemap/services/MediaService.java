@@ -74,6 +74,9 @@ public class MediaService {
         if (files == null || files.isEmpty()) {
             return;
         }
+        if(this.mediaRepository.countBySpotAndFormat(spot,"image") > 5 || files.size() > 5 ||
+                this.mediaRepository.countBySpotAndFormat(spot,"image") + files.size() > 5 )
+            throw new BadRequestException("you can only upload 5 images");
         Tika tika = new Tika();
         for (MultipartFile file : files) {
             try {
@@ -94,7 +97,9 @@ public class MediaService {
         if (files == null || files.isEmpty()) {
             return;
         }
-        //if(this.mediaRepository.countBySpot(spot)+ files.size()>5) throw new BadRequestException("the maximum video for every spot is 5");
+        if(this.mediaRepository.countBySpotAndFormat(spot,"video") > 3 || files.size() > 3 ||
+                this.mediaRepository.countBySpotAndFormat(spot,"video") + files.size() > 3 )
+            throw new BadRequestException("you can only upload 3 videos");
         Tika tika = new Tika();
         for (MultipartFile file : files) {
             try {
