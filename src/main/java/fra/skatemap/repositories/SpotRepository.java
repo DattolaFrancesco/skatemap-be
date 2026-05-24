@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.UUID;
 
 @Repository
@@ -17,4 +18,5 @@ public interface SpotRepository  extends JpaRepository<Spot, UUID>, JpaSpecifica
     Page<Spot> findByStatus(Status_spot status, Pageable pageable);
     Page<Spot> findByStatusAndUserId(Status_spot status,UUID id, Pageable pageable);
     Page<Spot> findByUserId(UUID id, Pageable pageable);
+    List<Spot> findByUserId(UUID id);
 }

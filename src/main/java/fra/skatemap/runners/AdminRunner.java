@@ -33,8 +33,8 @@ public class AdminRunner implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
          String password = adminPassword;
-            User user = new User("adminTest", "adminTest@gmail.com"
-                    , this.encoder.encode(password), "test", "testSurname");
+            User user = new User("Sdatten", "sdatten@gmail.com"
+                    , this.encoder.encode(password), "francesco", "dattola");
             Role role = this.roleService.findByName("super_admin");
             UserRole userRole = new UserRole(user, role);
             if (this.usersRepository.existsByEmail(user.getEmail())) {

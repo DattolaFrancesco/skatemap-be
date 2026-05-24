@@ -6,6 +6,7 @@ import fra.skatemap.entities.UserRole;
 import fra.skatemap.exceptions.BadRequestException;
 import fra.skatemap.exceptions.NotFoundException;
 import fra.skatemap.payloads.UsersDTO;
+import fra.skatemap.repositories.SpotRepository;
 import fra.skatemap.repositories.UsersRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -22,14 +23,17 @@ public class UsersService {
     private final PasswordEncoder encoder;
     private final RoleService roleService;
     private final UserRoleService userRoleService;
+    private final SpotRepository spotRepository;
 
     public UsersService(UsersRepository usersRepository,
-                        PasswordEncoder encoder, RoleService roleService, UserRoleService userRoleService
+                        PasswordEncoder encoder, RoleService roleService, UserRoleService userRoleService,
+                        SpotRepository spotRepository
     ) {
         this.usersRepository = usersRepository;
         this.encoder = encoder;
         this.roleService = roleService;
         this.userRoleService = userRoleService;
+        this.spotRepository = spotRepository;
     }
 
     public User findByEmail(String email) {
@@ -58,8 +62,13 @@ public class UsersService {
 
     @Transactional
     public void deleteById(UUID id) {
+        this.spotRepository.findByUserId(id).forEach(spot -> {
+            spot.setUser(null);
+            this.spotRepository.save(spot);
+        });
         this.userRoleService.deleteByUserId(id);
         this.usersRepository.deleteById(id);
+
     }
 
    public User modifyById(User user, UsersDTO usersDTO) {

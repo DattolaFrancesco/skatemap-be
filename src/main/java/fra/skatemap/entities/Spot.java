@@ -43,7 +43,7 @@ public class Spot {
     @Column(nullable = false)
     private String street;
     @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "user_id")
     private User user;
     @OneToMany(mappedBy = "spot")
     private List<Media> media = new ArrayList<>();
