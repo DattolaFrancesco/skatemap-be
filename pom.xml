@@ -140,6 +140,18 @@
 			<version>4.8.1</version>
 			<scope>provided</scope>
 		</dependency>
+		<!-- for video java resize -->
+		<dependency>
+			<groupId>ws.schild</groupId>
+			<artifactId>jave-all-deps</artifactId>
+			<version>3.3.1</version>
+		</dependency>
+		<!-- for image java resize -->
+		<dependency>
+			<groupId>net.coobird</groupId>
+			<artifactId>thumbnailator</artifactId>
+			<version>0.4.20</version>
+		</dependency>
 		<!-- Source: https://mvnrepository.com/artifact/com.konghq/unirest-objectmapper-jackson -->
 		<dependency>
 			<groupId>com.konghq</groupId>
