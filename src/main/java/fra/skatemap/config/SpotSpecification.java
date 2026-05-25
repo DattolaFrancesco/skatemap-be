@@ -1,5 +1,6 @@
 package fra.skatemap.config;
 
+import fra.skatemap.chatBot.DTO.SpotSearchParamsDTO;
 import fra.skatemap.entities.Spot;
 import fra.skatemap.entities.SpotType;
 import fra.skatemap.entities.Type;
@@ -10,6 +11,7 @@ import org.springframework.data.jpa.domain.Specification;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class SpotSpecification {
     public static Specification<Spot> hasContinent(List<String> continent){
@@ -53,5 +55,12 @@ public class SpotSpecification {
             Predicate continentPredicate = criteriaBuilder.like(criteriaBuilder.lower(root.get("continents")),"%"+search.toLowerCase()+"%");
             return criteriaBuilder.or(cityPredicate,streetPredicate,namePredicate,countryPredicate,continentPredicate);
         };
+    }
+    public static Specification<Spot> build(SpotSearchParamsDTO params) {
+        return Specification
+                .where(hasContinent(params.continents() != null ? List.of(params.continents()) : null))
+                .and(hasRisk(params.risk() != null ? List.of(params.risk()) : null))
+                .and(hasType(params.type() != null ? params.type().stream().map(String::toUpperCase).collect(Collectors.toList()) : null))
+                .and(hasSearch(params.city() != null ? params.city() : params.country()));
     }
 }
