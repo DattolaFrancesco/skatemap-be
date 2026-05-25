@@ -10,6 +10,7 @@ import fra.skatemap.exceptions.BadRequestException;
 import fra.skatemap.exceptions.NotFoundException;
 import fra.skatemap.payloads.CloudinaryUploadResultDTO;
 import fra.skatemap.repositories.MediaRepository;
+import net.coobird.thumbnailator.Thumbnails;
 import org.apache.tika.Tika;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -18,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
@@ -32,10 +34,21 @@ public class MediaService {
         this.mediaRepository = mediaRepository;
         this.cloudinaryConfig = cloudinaryConfig;
     }
+    protected byte[] resizeImage(MultipartFile file)throws IOException{
+        ByteArrayOutputStream out = new ByteArrayOutputStream(); //container for thumbnailator no disc files
+        Thumbnails.of(file.getInputStream())
+                .size(1280, 720)
+                .outputQuality(0.80)
+                .outputFormat("jpg")
+                .toOutputStream(out); // write result on byte array output stream and return a byte
+        return out.toByteArray();
+    }
+
     private CloudinaryUploadResultDTO uploadImage(MultipartFile file){
         try {
+            byte[] resized =resizeImage(file) ;
             Map uploadResult = this.cloudinaryConfig.cloudinary().uploader().upload(
-                    file.getBytes(),
+                    resized,
                     ObjectUtils.asMap(
                             "resource_type", "image",
                             "quality", "auto",

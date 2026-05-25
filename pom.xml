@@ -140,6 +140,11 @@
 			<version>4.8.1</version>
 			<scope>provided</scope>
 		</dependency>
+		<dependency>
+			<groupId>net.coobird</groupId>
+			<artifactId>thumbnailator</artifactId>
+			<version>0.4.20</version>
+		</dependency>
 		<!-- Source: https://mvnrepository.com/artifact/com.konghq/unirest-objectmapper-jackson -->
 		<dependency>
 			<groupId>com.konghq</groupId>
