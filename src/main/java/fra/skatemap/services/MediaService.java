@@ -8,7 +8,8 @@ import fra.skatemap.entities.Spot;
 import fra.skatemap.entities.Video;
 import fra.skatemap.exceptions.BadRequestException;
 import fra.skatemap.exceptions.NotFoundException;
-import fra.skatemap.payloads.CloudinaryUploadResultDTO;
+import fra.skatemap.payloads.CloudinaryUploadResultImageDTO;
+import fra.skatemap.payloads.CloudinaryUploadResultVideoDTO;
 import fra.skatemap.repositories.MediaRepository;
 import net.coobird.thumbnailator.Thumbnails;
 import org.apache.tika.Tika;
@@ -18,9 +19,17 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import ws.schild.jave.Encoder;
+import ws.schild.jave.MultimediaObject;
+import ws.schild.jave.encode.AudioAttributes;
+import ws.schild.jave.encode.EncodingAttributes;
+import ws.schild.jave.encode.VideoAttributes;
+import ws.schild.jave.info.VideoSize;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -34,7 +43,7 @@ public class MediaService {
         this.mediaRepository = mediaRepository;
         this.cloudinaryConfig = cloudinaryConfig;
     }
-    protected byte[] resizeImage(MultipartFile file)throws IOException{
+    private byte[] resizeImage(MultipartFile file)throws IOException{
         ByteArrayOutputStream out = new ByteArrayOutputStream(); //container for thumbnailator no disc files
         Thumbnails.of(file.getInputStream())
                 .size(1280, 720)
@@ -43,8 +52,39 @@ public class MediaService {
                 .toOutputStream(out); // write result on byte array output stream and return a byte
         return out.toByteArray();
     }
+    private byte[] compressVideo(MultipartFile file) throws Exception {
+        File tempInput = File.createTempFile("input_", ".mp4");
+        File tempOutput = File.createTempFile("output_", ".mp4");
 
-    private CloudinaryUploadResultDTO uploadImage(MultipartFile file){
+        try {
+            file.transferTo(tempInput);
+
+            MultimediaObject source = new MultimediaObject(tempInput);
+
+            VideoAttributes video = new VideoAttributes();
+            video.setCodec("libx264");
+            video.setBitRate(1500000);
+
+            AudioAttributes audio = new AudioAttributes();
+            audio.setCodec("aac");
+            audio.setBitRate(128000);
+            audio.setSamplingRate(44100);
+
+            EncodingAttributes attrs = new EncodingAttributes();
+            attrs.setVideoAttributes(video);
+            attrs.setAudioAttributes(audio);
+            attrs.setOutputFormat("mp4");
+
+            new Encoder().encode(source, tempOutput, attrs);
+
+            return Files.readAllBytes(tempOutput.toPath());
+
+        } finally {
+            tempInput.delete();
+            tempOutput.delete();
+        }
+    }
+    private CloudinaryUploadResultImageDTO uploadImage(MultipartFile file){
         try {
             byte[] resized =resizeImage(file) ;
             Map uploadResult = this.cloudinaryConfig.cloudinary().uploader().upload(
@@ -55,7 +95,7 @@ public class MediaService {
                             "fetch_format", "auto"
                     )
             );
-            return new CloudinaryUploadResultDTO(
+            return new CloudinaryUploadResultImageDTO(
                     uploadResult.get("secure_url").toString(),
                     uploadResult.get("public_id").toString(),
                     uploadResult.get("resource_type").toString()
@@ -64,23 +104,34 @@ public class MediaService {
             throw new BadRequestException("Error uploading the image");
         }
     }
-    private CloudinaryUploadResultDTO uploadVideo(MultipartFile file){
+    private CloudinaryUploadResultVideoDTO uploadVideo(MultipartFile file) {
         try {
+            byte[] compressed = compressVideo(file);
             Map uploadResult = this.cloudinaryConfig.cloudinary().uploader().upload(
-                    file.getBytes(),
+                    compressed,
                     ObjectUtils.asMap(
                             "resource_type", "video",
                             "quality", "auto",
-                            "fetch_format", "auto")
+                            "fetch_format", "auto"
+                    )
             );
-            return new CloudinaryUploadResultDTO(
-                    uploadResult.get("secure_url").toString(),
+            String videoUrl = uploadResult.get("secure_url").toString();
+            String thumbnailUrl = buildThumbnailUrl(videoUrl);
+
+            return new CloudinaryUploadResultVideoDTO(
+                    videoUrl,
                     uploadResult.get("public_id").toString(),
-                    uploadResult.get("resource_type").toString()
+                    uploadResult.get("resource_type").toString(),
+                    thumbnailUrl
             );
-        } catch (IOException e) {
+        } catch (Exception e) {
             throw new BadRequestException("Error uploading the video");
         }
+    }
+    private String buildThumbnailUrl(String videoUrl) {
+        return videoUrl
+                .replace("/video/upload/", "/video/upload/so_0,w_640/")
+                .replaceAll("\\.[^.]+$", ".jpg");
     }
     @Transactional
     public void saveImage(Spot spot, List<MultipartFile> files){
@@ -100,7 +151,7 @@ public class MediaService {
             } catch (IOException e) {
                 throw new BadRequestException("File is corrupted or unreadable");
             }
-            CloudinaryUploadResultDTO body = uploadImage(file);
+            CloudinaryUploadResultImageDTO body = uploadImage(file);
             Media media = new Image(spot,body.url(),body.publicId());
             this.mediaRepository.save(media);
         }
@@ -123,8 +174,8 @@ public class MediaService {
             } catch (IOException e) {
                 throw new BadRequestException("File is corrupted or unreadable");
             }
-            CloudinaryUploadResultDTO body = uploadVideo(file);
-            Media media = new Video(spot,body.url(),body.publicId());
+            CloudinaryUploadResultVideoDTO body = uploadVideo(file);
+            Media media = new Video(spot,body.url(),body.publicId(), body.thumbnailUrl());
             this.mediaRepository.save(media);
         }
     }
