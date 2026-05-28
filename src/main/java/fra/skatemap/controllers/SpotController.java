@@ -3,18 +3,21 @@ package fra.skatemap.controllers;
 import fra.skatemap.config.SpotSpecification;
 import fra.skatemap.entities.Spot;
 import fra.skatemap.entities.User;
-import fra.skatemap.enums.Status_spot;
 import fra.skatemap.exceptions.BadRequestException;
+import fra.skatemap.payloads.ModifiedSpotDTO;
 import fra.skatemap.payloads.SpotRequestDTO;
 import fra.skatemap.payloads.SpotResponseDTO;
 import fra.skatemap.services.SpotService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.UUID;
@@ -137,6 +140,16 @@ public class SpotController {
     @PreAuthorize("hasAuthority('admin') || hasAuthority('super_admin')")
     public SpotResponseDTO modifyStatus(@PathVariable UUID id, @RequestParam String status) {
         return this.spotService.modifyStatus(id, status);
+    }
+
+  /*  @PutMapping("/modify/{id}")
+    public void modifyAll(@re)*/
+    @PostMapping(value = "/upload/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public void modifyAll(
+            @PathVariable UUID id,
+            @RequestPart("spot") ModifiedSpotDTO spot,
+            @RequestPart("media") List<MultipartFile> media) {
+        this.spotService.modifyAll(id,spot,media);
     }
 
 }
