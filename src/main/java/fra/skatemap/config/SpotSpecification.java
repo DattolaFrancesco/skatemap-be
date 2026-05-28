@@ -45,6 +45,25 @@ public class SpotSpecification {
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
         };
     }
+    public static Specification<Spot> hasCity(String city) {
+        return (root, query, criteriaBuilder) -> {
+            if (city == null || city.isEmpty()) return null;
+            return criteriaBuilder.like(
+                    criteriaBuilder.lower(root.get("city")),
+                    "%" + city.toLowerCase()
+            );
+        };
+    }
+
+    public static Specification<Spot> hasCountry(String country) {
+        return (root, query, criteriaBuilder) -> {
+            if (country == null || country.isEmpty()) return null;
+            return criteriaBuilder.like(
+                    criteriaBuilder.lower(root.get("country")),
+                    "%" + country.toLowerCase() + "%"
+            );
+        };
+    }
     public static Specification<Spot> hasSearch(String search){
         return(root, query, criteriaBuilder) -> {
             if (search == null || search.isEmpty()) return null;
@@ -61,6 +80,7 @@ public class SpotSpecification {
                 .where(hasContinent(params.continents() != null ? List.of(params.continents()) : null))
                 .and(hasRisk(params.risk() != null ? List.of(params.risk()) : null))
                 .and(hasType(params.type() != null ? params.type().stream().map(String::toUpperCase).collect(Collectors.toList()) : null))
-                .and(hasSearch(params.city() != null ? params.city() : params.country()));
+                .and(hasCity(params.city() != null ? params.city().toUpperCase() : null))
+                .and(hasCountry(params.country() != null ? params.country().toUpperCase() : null));
     }
 }
