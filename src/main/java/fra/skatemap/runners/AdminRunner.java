@@ -22,7 +22,7 @@ public class AdminRunner implements CommandLineRunner {
     private final String adminPassword;
 
     public AdminRunner(PasswordEncoder encoder, RoleService roleService, UsersRepository usersRepository,
-                       UserRoleService userRoleService, @Value("${password}") String adminPassword) {
+                       UserRoleService userRoleService, @Value("${admin.password}") String adminPassword) {
         this.encoder = encoder;
         this.roleService = roleService;
         this.usersRepository = usersRepository;
