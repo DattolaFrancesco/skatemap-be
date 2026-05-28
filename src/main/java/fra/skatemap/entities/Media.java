@@ -67,6 +67,10 @@ public class Media {
         return spot;
     }
 
+    public Media() {
+   
+    }
+
     public Media(Spot spot, String link, String publicId, String format) {
         this.spot = spot;
         this.link = link;
