@@ -45,6 +45,10 @@ public class User implements UserDetails {
         this.surname = surname;
     }
 
+    public String getPassword() {
+        return password;
+    }
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return userRoles.stream()
