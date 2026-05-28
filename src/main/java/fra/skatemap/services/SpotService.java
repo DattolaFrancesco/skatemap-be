@@ -5,9 +5,12 @@ import fra.skatemap.enums.Continents;
 import fra.skatemap.enums.Status_spot;
 import fra.skatemap.exceptions.BadRequestException;
 import fra.skatemap.exceptions.NotFoundException;
+import fra.skatemap.payloads.CloudinaryUploadResultImageDTO;
+import fra.skatemap.payloads.ModifiedSpotDTO;
 import fra.skatemap.payloads.SpotRequestDTO;
 import fra.skatemap.payloads.SpotResponseDTO;
 import fra.skatemap.repositories.SpotRepository;
+import org.apache.tika.Tika;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -15,7 +18,10 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -189,5 +195,49 @@ public class SpotService {
                 .orElseThrow(() -> new NotFoundException("Spot not found"));
         spot.setStatus(Status_spot.valueOf(status.toUpperCase()));
         return toDTO(this.spotRepository.save(spot));
+    }
+    @Transactional
+    public String modifyAll(UUID id, ModifiedSpotDTO modifiedSpotDTO, List<MultipartFile> files){
+        Spot spot = findSpotById(id); // find spot
+        // delete existing media  that need to go
+        modifiedSpotDTO.eliminatedMedia().forEach(m->this.mediaService.deleteById(UUID.fromString(m)));
+        // get if the media are video or img
+        List<MultipartFile> image = new ArrayList<>();
+        List<MultipartFile> video = new ArrayList<>();
+        Tika tika = new Tika();
+        if (files != null && !files.isEmpty()) {
+        for (MultipartFile file : files) {
+            try {
+                String mimeType = tika.detect(file.getBytes());
+                if (mimeType != null && mimeType.startsWith("image/gif")) {
+                    throw new BadRequestException("GIF files are not supported");
+                }
+                if (mimeType.startsWith("image")) {
+                    image.add(file);
+                } else if (mimeType.startsWith("video")) {
+                    video.add(file);
+                } else {
+                    throw new BadRequestException("Unsupported file type: " + mimeType);
+                }
+
+            } catch (IOException e) {
+                throw new BadRequestException("File is corrupted or unreadable");
+            }
+        }}
+        // saving new imgs
+        if (!image.isEmpty()) {
+            mediaService.saveImage(spot, image);
+        }
+        if (!video.isEmpty()) {
+            mediaService.saveVideo(spot, video);
+        }
+        //save new info in spot
+        modifyById(id,new SpotRequestDTO(
+                modifiedSpotDTO.name(), modifiedSpotDTO.latitude(), modifiedSpotDTO.longitude(),
+                modifiedSpotDTO.description(), modifiedSpotDTO.risk(),modifiedSpotDTO.continent()
+                , modifiedSpotDTO.country(), modifiedSpotDTO.city(), modifiedSpotDTO.street(),
+                modifiedSpotDTO.types()));
+        return modifiedSpotDTO.name() + " modified with success";
+
     }
 }
