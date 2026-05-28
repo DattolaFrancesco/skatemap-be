@@ -140,6 +140,10 @@
 			<version>4.8.1</version>
 			<scope>provided</scope>
 		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-actuator</artifactId>
+		</dependency>
 		<!-- for video java resize -->
 		<dependency>
 			<groupId>ws.schild</groupId>
