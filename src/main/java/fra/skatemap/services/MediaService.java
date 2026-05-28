@@ -24,12 +24,10 @@ import ws.schild.jave.MultimediaObject;
 import ws.schild.jave.encode.AudioAttributes;
 import ws.schild.jave.encode.EncodingAttributes;
 import ws.schild.jave.encode.VideoAttributes;
-import ws.schild.jave.info.VideoSize;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -43,50 +41,46 @@ public class MediaService {
         this.mediaRepository = mediaRepository;
         this.cloudinaryConfig = cloudinaryConfig;
     }
-    private byte[] resizeImage(MultipartFile file)throws IOException{
-        ByteArrayOutputStream out = new ByteArrayOutputStream(); //container for thumbnailator no disc files
+
+    private byte[] resizeImage(MultipartFile file) throws IOException {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
         Thumbnails.of(file.getInputStream())
                 .size(1280, 720)
                 .outputQuality(0.80)
                 .outputFormat("jpg")
-                .toOutputStream(out); // write result on byte array output stream and return a byte
+                .toOutputStream(out);
         return out.toByteArray();
     }
-    private byte[] compressVideo(MultipartFile file) throws Exception {
+
+    private File compressVideo(MultipartFile file) throws Exception {
         File tempInput = File.createTempFile("input_", ".mp4");
         File tempOutput = File.createTempFile("output_", ".mp4");
 
-        try {
-            file.transferTo(tempInput);
+        file.transferTo(tempInput);
 
-            MultimediaObject source = new MultimediaObject(tempInput);
+        VideoAttributes video = new VideoAttributes();
+        video.setCodec("libx264");
+        video.setBitRate(1500000);
 
-            VideoAttributes video = new VideoAttributes();
-            video.setCodec("libx264");
-            video.setBitRate(1500000);
+        AudioAttributes audio = new AudioAttributes();
+        audio.setCodec("aac");
+        audio.setBitRate(128000);
+        audio.setSamplingRate(44100);
 
-            AudioAttributes audio = new AudioAttributes();
-            audio.setCodec("aac");
-            audio.setBitRate(128000);
-            audio.setSamplingRate(44100);
+        EncodingAttributes attrs = new EncodingAttributes();
+        attrs.setVideoAttributes(video);
+        attrs.setAudioAttributes(audio);
+        attrs.setOutputFormat("mp4");
 
-            EncodingAttributes attrs = new EncodingAttributes();
-            attrs.setVideoAttributes(video);
-            attrs.setAudioAttributes(audio);
-            attrs.setOutputFormat("mp4");
+        new Encoder().encode(new MultimediaObject(tempInput), tempOutput, attrs);
+        tempInput.delete();
 
-            new Encoder().encode(source, tempOutput, attrs);
-
-            return Files.readAllBytes(tempOutput.toPath());
-
-        } finally {
-            tempInput.delete();
-            tempOutput.delete();
-        }
+        return tempOutput;
     }
-    private CloudinaryUploadResultImageDTO uploadImage(MultipartFile file){
+
+    private CloudinaryUploadResultImageDTO uploadImage(MultipartFile file) {
         try {
-            byte[] resized =resizeImage(file) ;
+            byte[] resized = resizeImage(file);
             Map uploadResult = this.cloudinaryConfig.cloudinary().uploader().upload(
                     resized,
                     ObjectUtils.asMap(
@@ -99,16 +93,18 @@ public class MediaService {
                     uploadResult.get("secure_url").toString(),
                     uploadResult.get("public_id").toString(),
                     uploadResult.get("resource_type").toString()
-                    );
+            );
         } catch (IOException e) {
             throw new BadRequestException("Error uploading the image");
         }
     }
+
     private CloudinaryUploadResultVideoDTO uploadVideo(MultipartFile file) {
+        File tempOutput = null;
         try {
-            byte[] compressed = compressVideo(file);
+            tempOutput = compressVideo(file);
             Map uploadResult = this.cloudinaryConfig.cloudinary().uploader().upload(
-                    compressed,
+                    tempOutput,
                     ObjectUtils.asMap(
                             "resource_type", "video",
                             "quality", "auto",
@@ -116,102 +112,87 @@ public class MediaService {
                     )
             );
             String videoUrl = uploadResult.get("secure_url").toString();
-            String thumbnailUrl = buildThumbnailUrl(videoUrl);
-
             return new CloudinaryUploadResultVideoDTO(
                     videoUrl,
                     uploadResult.get("public_id").toString(),
                     uploadResult.get("resource_type").toString(),
-                    thumbnailUrl
+                    buildThumbnailUrl(videoUrl)
             );
         } catch (Exception e) {
             throw new BadRequestException("Error uploading the video");
+        } finally {
+            if (tempOutput != null) tempOutput.delete();
         }
     }
+
     private String buildThumbnailUrl(String videoUrl) {
         return videoUrl
                 .replace("/video/upload/", "/video/upload/so_0,w_640/")
                 .replaceAll("\\.[^.]+$", ".jpg");
     }
+
     @Transactional
-    public void saveImage(Spot spot, List<MultipartFile> files){
-        if (files == null || files.isEmpty()) {
-            return;
-        }
-        if(this.mediaRepository.countBySpotAndFormat(spot,"image") > 5 || files.size() > 5 ||
-                this.mediaRepository.countBySpotAndFormat(spot,"image") + files.size() > 5 )
+    public void saveImage(Spot spot, List<MultipartFile> files) {
+        if (files == null || files.isEmpty()) return;
+        if (this.mediaRepository.countBySpotAndFormat(spot, "image") > 5 || files.size() > 5 ||
+                this.mediaRepository.countBySpotAndFormat(spot, "image") + files.size() > 5)
             throw new BadRequestException("you can only upload 5 images");
         Tika tika = new Tika();
         for (MultipartFile file : files) {
             try {
                 String mimeType = tika.detect(file.getBytes());
-                if (!mimeType.startsWith("image")) {
-                    throw new BadRequestException("Files aren't images");
-                }
+                if (!mimeType.startsWith("image")) throw new BadRequestException("Files aren't images");
             } catch (IOException e) {
                 throw new BadRequestException("File is corrupted or unreadable");
             }
             CloudinaryUploadResultImageDTO body = uploadImage(file);
-            Media media = new Image(spot,body.url(),body.publicId());
-            this.mediaRepository.save(media);
+            this.mediaRepository.save(new Image(spot, body.url(), body.publicId()));
         }
     }
+
     @Transactional
-    public void saveVideo(Spot spot, List<MultipartFile> files){
-        if (files == null || files.isEmpty()) {
-            return;
-        }
-        if(this.mediaRepository.countBySpotAndFormat(spot,"video") > 3 || files.size() > 3 ||
-                this.mediaRepository.countBySpotAndFormat(spot,"video") + files.size() > 3 )
+    public void saveVideo(Spot spot, List<MultipartFile> files) {
+        if (files == null || files.isEmpty()) return;
+        if (this.mediaRepository.countBySpotAndFormat(spot, "video") > 3 || files.size() > 3 ||
+                this.mediaRepository.countBySpotAndFormat(spot, "video") + files.size() > 3)
             throw new BadRequestException("you can only upload 3 videos");
         Tika tika = new Tika();
         for (MultipartFile file : files) {
             try {
                 String mimeType = tika.detect(file.getBytes());
-                if (!mimeType.startsWith("video")) {
-                    throw new BadRequestException("Files aren't video");
-                }
+                if (!mimeType.startsWith("video")) throw new BadRequestException("Files aren't video");
             } catch (IOException e) {
                 throw new BadRequestException("File is corrupted or unreadable");
             }
             CloudinaryUploadResultVideoDTO body = uploadVideo(file);
-            Media media = new Video(spot,body.url(),body.publicId(), body.thumbnailUrl());
-            this.mediaRepository.save(media);
+            this.mediaRepository.save(new Video(spot, body.url(), body.publicId(), body.thumbnailUrl()));
         }
     }
-    public Media findById(UUID id){
-        return this.mediaRepository.findById(id).orElseThrow(()-> new NotFoundException("media not found"));
+
+    public Media findById(UUID id) {
+        return this.mediaRepository.findById(id).orElseThrow(() -> new NotFoundException("media not found"));
     }
-    public void deleteById(UUID id){
+
+    public void deleteById(UUID id) {
         Media media = findById(id);
-        String resourceType;
-        if (media instanceof Video) {
-            resourceType = "video";
-        } else {
-            resourceType = "image";
-        }
+        String resourceType = media instanceof Video ? "video" : "image";
         try {
-            this.cloudinaryConfig.cloudinary().uploader()
-                    .destroy(media.getPublicId(),
-                            ObjectUtils.asMap(
-                            "resource_type", resourceType
-                    ));
+            this.cloudinaryConfig.cloudinary().uploader().destroy(
+                    media.getPublicId(),
+                    ObjectUtils.asMap("resource_type", resourceType)
+            );
         } catch (Exception e) {
             throw new BadRequestException("Error deleting media from Cloudinary");
         }
         this.mediaRepository.deleteById(id);
     }
-   public Page<Media> findAllMediaByIdAndType(UUID id,String type, int page, int size ){
-        Pageable pageable = PageRequest.of(page, size);
-        if(type == null ) return  this.mediaRepository.findBySpotId(id,pageable);
-        switch (type.toLowerCase()) {
-            case "image":
-                return this.mediaRepository.findBySpotIdAndFormat(id,type,pageable);
-            case "video":
-                return this.mediaRepository.findBySpotIdAndFormat(id,type, pageable);
-            default:
-                return this.mediaRepository.findBySpotId(id,pageable);
-        }
-    }
 
+    public Page<Media> findAllMediaByIdAndType(UUID id, String type, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        if (type == null) return this.mediaRepository.findBySpotId(id, pageable);
+        return switch (type.toLowerCase()) {
+            case "image", "video" -> this.mediaRepository.findBySpotIdAndFormat(id, type, pageable);
+            default -> this.mediaRepository.findBySpotId(id, pageable);
+        };
+    }
 }
