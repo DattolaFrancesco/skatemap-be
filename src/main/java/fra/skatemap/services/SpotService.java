@@ -197,7 +197,7 @@ public class SpotService {
         return toDTO(this.spotRepository.save(spot));
     }
     @Transactional
-    public void modifyAll(UUID id, ModifiedSpotDTO modifiedSpotDTO, List<MultipartFile> files){
+    public String modifyAll(UUID id, ModifiedSpotDTO modifiedSpotDTO, List<MultipartFile> files){
         Spot spot = findSpotById(id); // find spot
         // delete existing media  that need to go
         modifiedSpotDTO.eliminatedMedia().forEach(m->this.mediaService.deleteById(UUID.fromString(m)));
@@ -237,6 +237,7 @@ public class SpotService {
                 modifiedSpotDTO.description(), modifiedSpotDTO.risk(),modifiedSpotDTO.continent()
                 , modifiedSpotDTO.country(), modifiedSpotDTO.city(), modifiedSpotDTO.street(),
                 modifiedSpotDTO.types()));
+        return modifiedSpotDTO.name() + " modified with success";
 
     }
 }

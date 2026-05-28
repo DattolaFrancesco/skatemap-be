@@ -145,11 +145,11 @@ public class SpotController {
   /*  @PutMapping("/modify/{id}")
     public void modifyAll(@re)*/
     @PostMapping(value = "/upload/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public void modifyAll(
+    public String modifyAll(
             @PathVariable UUID id,
             @RequestPart("spot") ModifiedSpotDTO spot,
-            @RequestPart("media") List<MultipartFile> media) {
-        this.spotService.modifyAll(id,spot,media);
+            @RequestPart(value = "media", required = false) List<MultipartFile> media) {
+       return this.spotService.modifyAll(id,spot,media);
     }
 
 }
