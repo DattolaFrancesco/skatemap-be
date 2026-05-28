@@ -10,8 +10,6 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "types_of_spot")
-@Getter
-@Setter
 @NoArgsConstructor
 public class Type {
     @Id
@@ -20,6 +18,22 @@ public class Type {
     private UUID id;
     @Column(name = "spot_type", nullable = false)
     private String spotType;
+
+    public void setId(UUID id) {
+        this.id = id;
+    }
+
+    public void setSpotType(String spotType) {
+        this.spotType = spotType;
+    }
+
+    public UUID getId() {
+        return id;
+    }
+
+    public String getSpotType() {
+        return spotType;
+    }
 
     public Type(String spotType) {
         this.spotType = spotType;

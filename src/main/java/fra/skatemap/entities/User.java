@@ -15,8 +15,6 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "users")
-@Getter
-@Setter
 @NoArgsConstructor
 @JsonIgnoreProperties({"accountNonExpired", "accountNonLocked",
         "credentialsNonExpired", "enabled","password","userRoles"})
@@ -36,6 +34,54 @@ public class User implements UserDetails {
     private String surname;
     @OneToMany(mappedBy = "user", fetch = FetchType.EAGER)
     private List<UserRole> userRoles;
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public void setId(UUID id) {
+        this.id = id;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public void setSurname(String surname) {
+        this.surname = surname;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public void setUserRoles(List<UserRole> userRoles) {
+        this.userRoles = userRoles;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public UUID getId() {
+        return id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getSurname() {
+        return surname;
+    }
+
+    public List<UserRole> getUserRoles() {
+        return userRoles;
+    }
 
     public User(String username, String email, String password, String name, String surname) {
         this.username = username;

@@ -10,8 +10,7 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "spot_types")
-@Getter
-@Setter
+
 @NoArgsConstructor
 public class SpotType {
     @Id
@@ -27,6 +26,30 @@ public class SpotType {
     @ManyToOne
     @JoinColumn(name = "type_id", nullable = false)
     private Type type;
+
+    public void setId(UUID id) {
+        this.id = id;
+    }
+
+    public void setSpot(Spot spot) {
+        this.spot = spot;
+    }
+
+    public void setType(Type type) {
+        this.type = type;
+    }
+
+    public UUID getId() {
+        return id;
+    }
+
+    public Spot getSpot() {
+        return spot;
+    }
+
+    public Type getType() {
+        return type;
+    }
 
     public SpotType(Spot spot, Type type) {
         this.spot = spot;

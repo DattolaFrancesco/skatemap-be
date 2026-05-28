@@ -10,8 +10,6 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "favourite_spots")
-@Getter
-@Setter
 @NoArgsConstructor
 public class FavouriteSpot {
     @Id
@@ -26,6 +24,30 @@ public class FavouriteSpot {
     @ManyToOne
     @JoinColumn(name = "spot_id", nullable = false)
     private Spot spot;
+
+    public void setId(UUID id) {
+        this.id = id;
+    }
+
+    public void setSpot(Spot spot) {
+        this.spot = spot;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
+    }
+
+    public UUID getId() {
+        return id;
+    }
+
+    public Spot getSpot() {
+        return spot;
+    }
+
+    public User getUser() {
+        return user;
+    }
 
     public FavouriteSpot(Spot spot, User user) {
         this.spot = spot;

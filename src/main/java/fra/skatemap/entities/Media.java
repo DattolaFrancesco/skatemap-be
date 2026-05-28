@@ -11,8 +11,6 @@ import java.util.UUID;
 @Entity
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name = "media_type")
-@Getter
-@Setter
 @NoArgsConstructor
 public class Media {
     @Id
@@ -28,6 +26,46 @@ public class Media {
     @JsonIgnore
     @JoinColumn(name = "spot_id", nullable = false)
     private Spot spot;
+
+    public void setFormat(String format) {
+        this.format = format;
+    }
+
+    public void setId(UUID id) {
+        this.id = id;
+    }
+
+    public void setLink(String link) {
+        this.link = link;
+    }
+
+    public void setPublicId(String publicId) {
+        this.publicId = publicId;
+    }
+
+    public void setSpot(Spot spot) {
+        this.spot = spot;
+    }
+
+    public String getFormat() {
+        return format;
+    }
+
+    public UUID getId() {
+        return id;
+    }
+
+    public String getLink() {
+        return link;
+    }
+
+    public String getPublicId() {
+        return publicId;
+    }
+
+    public Spot getSpot() {
+        return spot;
+    }
 
     public Media(Spot spot, String link, String publicId, String format) {
         this.spot = spot;

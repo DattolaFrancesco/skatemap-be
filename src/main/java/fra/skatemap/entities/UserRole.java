@@ -10,8 +10,7 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "users_roles")
-@Getter
-@Setter
+
 @NoArgsConstructor
 public class UserRole {
     @Id
@@ -27,6 +26,30 @@ public class UserRole {
     @JsonIgnore
     @JoinColumn(name = "role_id", nullable = false)
     private Role role;
+
+    public void setId(UUID id) {
+        this.id = id;
+    }
+
+    public void setRole(Role role) {
+        this.role = role;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
+    }
+
+    public UUID getId() {
+        return id;
+    }
+
+    public Role getRole() {
+        return role;
+    }
+
+    public User getUser() {
+        return user;
+    }
 
     public UserRole(User user, Role role) {
         this.user = user;

@@ -9,8 +9,6 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "roles")
-@Getter
-@Setter
 @NoArgsConstructor
 public class Role {
     @Id
@@ -18,6 +16,22 @@ public class Role {
     private UUID id;
     @Column(name = "role_name", nullable = false)
     private String roleName;
+
+    public void setId(UUID id) {
+        this.id = id;
+    }
+
+    public void setRoleName(String roleName) {
+        this.roleName = roleName;
+    }
+
+    public UUID getId() {
+        return id;
+    }
+
+    public String getRoleName() {
+        return roleName;
+    }
 
     public Role(String roleName) {
         this.roleName = roleName;
