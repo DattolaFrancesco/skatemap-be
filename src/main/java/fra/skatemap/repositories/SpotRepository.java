@@ -27,8 +27,7 @@ public interface SpotRepository extends JpaRepository<Spot, UUID>, JpaSpecificat
 
     @EntityGraph(attributePaths = {"media", "spotTypes", "spotTypes.type"})
     Page<Spot> findByUserId(UUID id, Pageable pageable);
-
-    @EntityGraph(attributePaths = {"media", "spotTypes", "spotTypes.type"})
+    
     Page<Spot> findAll(Specification<Spot> spec, Pageable pageable);
 
     List<Spot> findByUserId(UUID id);
