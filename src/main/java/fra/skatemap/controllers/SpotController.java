@@ -5,6 +5,7 @@ import fra.skatemap.entities.Spot;
 import fra.skatemap.entities.User;
 import fra.skatemap.exceptions.BadRequestException;
 import fra.skatemap.payloads.ModifiedSpotDTO;
+import fra.skatemap.payloads.SpotMinimalResponseDTO;
 import fra.skatemap.payloads.SpotRequestDTO;
 import fra.skatemap.payloads.SpotResponseDTO;
 import fra.skatemap.services.SpotService;
@@ -44,7 +45,7 @@ public class SpotController {
         return this.spotService.save(body,user);
     }
     @GetMapping("/all")
-    public Page<SpotResponseDTO> filterSpots(
+    public Page<SpotMinimalResponseDTO> filterSpots(
             @RequestParam(required = false) List<String> continent,
             @RequestParam(required = false) List<String> risk,
             @RequestParam(required = false) List<String> type,
@@ -58,10 +59,10 @@ public class SpotController {
                 .and(SpotSpecification.hasRisk(risk))
                 .and(SpotSpecification.hasType(type))
                 .and(SpotSpecification.hasSearch(search));
-        return this.spotService.filterSpots(spec,page,size,sortBy);
+        return this.spotService.filterMinimalSpots(spec,page,size,sortBy);
     }
     @GetMapping("/globe/approved/all")
-    public Page<SpotResponseDTO> filterGlobeApprovedSpots(
+    public Page<SpotMinimalResponseDTO> filterGlobeApprovedSpots(
             @RequestParam(required = false) List<String> continent,
             @RequestParam(required = false) List<String> risk,
             @RequestParam(required = false) List<String> type,
@@ -76,10 +77,10 @@ public class SpotController {
                 .and(SpotSpecification.hasRisk(risk))
                 .and(SpotSpecification.hasType(type))
                 .and(SpotSpecification.hasSearch(search));
-        return this.spotService.filterSpots(spec,page,size,sortBy);
+        return this.spotService.filterMinimalSpots(spec,page,size,sortBy);
     }
     @GetMapping("/approved/all")
-    public Page<SpotResponseDTO> filterApprovedSpots(
+    public Page<SpotMinimalResponseDTO> filterApprovedSpots(
             @RequestParam(required = false) List<String> continent,
             @RequestParam(required = false) List<String> risk,
             @RequestParam(required = false) List<String> type,
@@ -94,14 +95,14 @@ public class SpotController {
                 .and(SpotSpecification.hasRisk(risk))
                 .and(SpotSpecification.hasType(type))
                 .and(SpotSpecification.hasSearch(search));
-        return this.spotService.filterSpots(spec,page,size,sortBy);
+        return this.spotService.filterMinimalSpots(spec,page,size,sortBy);
     }
     @GetMapping("/{id}")
     public SpotResponseDTO getSpot(@PathVariable UUID id){
         return this.spotService.findById(id);
     }
     @GetMapping("/own")
-    public Page<SpotResponseDTO> getOwnSpots(
+    public Page<SpotMinimalResponseDTO> getOwnSpots(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "") String status,
             @RequestParam(defaultValue = "500") int size,
@@ -112,7 +113,7 @@ public class SpotController {
     }
     @GetMapping("/pending")
     @PreAuthorize("hasAuthority('admin') || hasAuthority('super_admin')")
-    public Page<SpotResponseDTO> getPendingSpots(
+    public Page<SpotMinimalResponseDTO> getPendingSpots(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "500") int size,
             @RequestParam(defaultValue = "name") String sortBy,
@@ -142,8 +143,6 @@ public class SpotController {
         return this.spotService.modifyStatus(id, status);
     }
 
-  /*  @PutMapping("/modify/{id}")
-    public void modifyAll(@re)*/
     @PostMapping(value = "/upload/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public String modifyAll(
             @PathVariable UUID id,

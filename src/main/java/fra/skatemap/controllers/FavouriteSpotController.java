@@ -3,6 +3,7 @@ package fra.skatemap.controllers;
 import fra.skatemap.entities.FavouriteSpot;
 import fra.skatemap.entities.User;
 import fra.skatemap.payloads.FavouriteSpotResponseDTO;
+import fra.skatemap.payloads.SpotMinimalResponseDTO;
 import fra.skatemap.payloads.SpotResponseDTO;
 import fra.skatemap.services.FavouriteSpotService;
 import org.springframework.data.domain.Page;
@@ -29,10 +30,10 @@ public class FavouriteSpotController {
         return this.favouriteSpotService.findSingleFav(spotId, user);
     }
     @GetMapping("/all")
-    public Page<SpotResponseDTO> findFav(@AuthenticationPrincipal User user,
-                                         @RequestParam(defaultValue = "0") int page,
-                                         @RequestParam(defaultValue = "500") int size,
-                                         @RequestParam(defaultValue = "spot.name") String sortBy){
+    public Page<SpotMinimalResponseDTO> findFav(@AuthenticationPrincipal User user,
+                                                @RequestParam(defaultValue = "0") int page,
+                                                @RequestParam(defaultValue = "500") int size,
+                                                @RequestParam(defaultValue = "spot.name") String sortBy){
         return this.favouriteSpotService.findFav(user, page, size, sortBy);
     }
     @DeleteMapping("/{spotId}")

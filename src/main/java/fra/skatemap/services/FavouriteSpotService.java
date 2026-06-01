@@ -1,9 +1,11 @@
 package fra.skatemap.services;
 
 import fra.skatemap.entities.FavouriteSpot;
+import fra.skatemap.entities.Image;
 import fra.skatemap.entities.Spot;
 import fra.skatemap.entities.User;
 import fra.skatemap.payloads.FavouriteSpotResponseDTO;
+import fra.skatemap.payloads.SpotMinimalResponseDTO;
 import fra.skatemap.payloads.SpotResponseDTO;
 import fra.skatemap.repositories.FavouriteSpotRepository;
 import org.springframework.data.domain.Page;
@@ -40,11 +42,13 @@ public class FavouriteSpotService {
          FavouriteSpot favouriteSpot = this.favouriteSpotRepository.findBySpotIdAndUserId(spotId,user.getId());
         return this.spotService.toDTO(favouriteSpot.getSpot());
     }
-    public Page<SpotResponseDTO> findFav(User user, int page, int size, String sortBy){
+    public Page<SpotMinimalResponseDTO> findFav(User user, int page, int size, String sortBy){
         User user1 = this.usersService.findById(user.getId());
         Pageable pageable = PageRequest.of(page,size,Sort.by(sortBy));
         return this.favouriteSpotRepository.findByUserId(user1.getId(), pageable)
-                .map(s-> this.spotService.toDTO(s.getSpot()));
+                .map(s-> new SpotMinimalResponseDTO(
+                        s.getSpot().getId(),s.getSpot().getName(),s.getSpot().getLatitude(),s.getSpot().getLongitude(),s.getSpot().getCity(),
+                        s.getSpot().getMedia().stream().filter(m->m instanceof Image).toList().getFirst()));
     }
     public void deleteBySpotIdAndUserId(UUID spotId, User user){
      checkCredentials(spotId,user);
