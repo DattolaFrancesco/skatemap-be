@@ -32,7 +32,7 @@ public class User implements UserDetails {
     private String name;
     @Column(nullable = true)
     private String surname;
-    @OneToMany(mappedBy = "user", fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
     private List<UserRole> userRoles;
 
     public void setEmail(String email) {
