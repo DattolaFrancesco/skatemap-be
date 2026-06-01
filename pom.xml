@@ -1,31 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
 		<version>4.0.6</version>
-		<relativePath/> <!-- lookup parent from repository -->
+		<relativePath/>
 	</parent>
 	<groupId>fra</groupId>
 	<artifactId>skatemap</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name/>
 	<description/>
-	<url/>
-	<licenses>
-		<license/>
-	</licenses>
-	<developers>
-		<developer/>
-	</developers>
-	<scm>
-		<connection/>
-		<developerConnection/>
-		<tag/>
-		<url/>
-	</scm>
 	<properties>
 		<java.version>21</java.version>
 		<spring-ai.version>2.0.0-M4</spring-ai.version>
@@ -56,7 +43,6 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-webmvc</artifactId>
 		</dependency>
-
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-devtools</artifactId>
@@ -75,79 +61,55 @@
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-data-jpa-test</artifactId>
+			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
 		</dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-security-test</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-validation-test</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-webmvc-test</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<!-- Source: https://mvnrepository.com/artifact/io.jsonwebtoken/jjwt-api -->
 		<dependency>
 			<groupId>io.jsonwebtoken</groupId>
 			<artifactId>jjwt-api</artifactId>
 			<version>0.13.0</version>
-			<scope>compile</scope>
 		</dependency>
-		<!-- Source: https://mvnrepository.com/artifact/io.jsonwebtoken/jjwt-impl -->
 		<dependency>
 			<groupId>io.jsonwebtoken</groupId>
 			<artifactId>jjwt-impl</artifactId>
 			<version>0.13.0</version>
 			<scope>runtime</scope>
 		</dependency>
-		<!-- Source: https://mvnrepository.com/artifact/io.jsonwebtoken/jjwt-jackson -->
 		<dependency>
 			<groupId>io.jsonwebtoken</groupId>
 			<artifactId>jjwt-jackson</artifactId>
 			<version>0.13.0</version>
 			<scope>runtime</scope>
 		</dependency>
-		<!-- Source: https://mvnrepository.com/artifact/com.cloudinary/cloudinary-http45 -->
 		<dependency>
 			<groupId>com.cloudinary</groupId>
 			<artifactId>cloudinary-http45</artifactId>
 			<version>1.39.0</version>
-			<scope>compile</scope>
 		</dependency>
-		<!-- Source: https://mvnrepository.com/artifact/com.mailgun/mailgun-java -->
 		<dependency>
 			<groupId>com.mailgun</groupId>
 			<artifactId>mailgun-java</artifactId>
 			<version>2.4.1</version>
-			<scope>runtime</scope>
 		</dependency>
-		<dependency>
-			<groupId>com.konghq</groupId>
-			<artifactId>unirest-java</artifactId>
-			<version>3.14.5</version> <!-- or latest -->
-		</dependency>
-		<!-- Source: https://mvnrepository.com/artifact/com.konghq/unirest-java-core -->
+		<!-- unirest — tenuta solo la versione 4 core, rimossa la 3 duplicata -->
 		<dependency>
 			<groupId>com.konghq</groupId>
 			<artifactId>unirest-java-core</artifactId>
 			<version>4.8.1</version>
-			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.konghq</groupId>
+			<artifactId>unirest-objectmapper-jackson</artifactId>
+			<version>4.2.9</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-actuator</artifactId>
 		</dependency>
-		<!-- for video java resize -->
+		<!-- jave — solo core + binari specifici per piattaforma -->
 		<dependency>
 			<groupId>ws.schild</groupId>
-			<artifactId>jave-all-deps</artifactId>
+			<artifactId>jave-core</artifactId>
 			<version>3.3.1</version>
 		</dependency>
 		<dependency>
@@ -155,18 +117,10 @@
 			<artifactId>imageio-webp</artifactId>
 			<version>3.10.1</version>
 		</dependency>
-		<!-- for image java resize -->
 		<dependency>
 			<groupId>net.coobird</groupId>
 			<artifactId>thumbnailator</artifactId>
 			<version>0.4.20</version>
-		</dependency>
-		<!-- Source: https://mvnrepository.com/artifact/com.konghq/unirest-objectmapper-jackson -->
-		<dependency>
-			<groupId>com.konghq</groupId>
-			<artifactId>unirest-objectmapper-jackson</artifactId>
-			<version>4.2.9</version>
-			<scope>compile</scope>
 		</dependency>
 	</dependencies>
 	<dependencyManagement>
@@ -180,13 +134,45 @@
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
+	<profiles>
+		<profile>
+			<id>dev</id>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
+			<dependencies>
+				<dependency>
+					<groupId>ws.schild</groupId>
+					<artifactId>jave-nativebin-osx-m1</artifactId>
+					<version>3.3.1</version>
+				</dependency>
+			</dependencies>
+		</profile>
+		<profile>
+			<id>prod</id>
+			<dependencies>
+				<dependency>
+					<groupId>ws.schild</groupId>
+					<artifactId>jave-nativebin-linux64</artifactId>
+					<version>3.3.1</version>
+				</dependency>
+			</dependencies>
+		</profile>
+	</profiles>
 	<build>
 		<plugins>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
+				<configuration>
+					<excludes>
+						<exclude>
+							<groupId>org.projectlombok</groupId>
+							<artifactId>lombok</artifactId>
+						</exclude>
+					</excludes>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>
-
 </project>
