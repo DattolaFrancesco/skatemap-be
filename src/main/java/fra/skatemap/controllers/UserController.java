@@ -3,6 +3,7 @@ package fra.skatemap.controllers;
 import fra.skatemap.entities.User;
 import fra.skatemap.entities.UserRole;
 import fra.skatemap.exceptions.BadRequestException;
+import fra.skatemap.payloads.InfoUserDTO;
 import fra.skatemap.payloads.RolesDTO;
 import fra.skatemap.payloads.UsersDTO;
 import fra.skatemap.services.UserRoleService;
@@ -79,6 +80,10 @@ public class UserController {
     @GetMapping()
     public User getUser(@AuthenticationPrincipal User user) {
         return user;
+    }
+    @GetMapping("/minimal")
+    public InfoUserDTO getUserMinimal(@AuthenticationPrincipal User user) {
+        return  this.usersService.getUserMinimal(user);
     }
 
 }

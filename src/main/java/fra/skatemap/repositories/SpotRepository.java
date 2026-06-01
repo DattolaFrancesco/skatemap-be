@@ -20,4 +20,6 @@ public interface SpotRepository  extends JpaRepository<Spot, UUID>, JpaSpecifica
     Page<Spot> findByStatusAndUserId(Status_spot status,UUID id, Pageable pageable);
     Page<Spot> findByUserId(UUID id, Pageable pageable);
     List<Spot> findByUserId(UUID id);
+    long countByUserId(UUID id);
+    boolean existsByStatus(Status_spot status);
 }

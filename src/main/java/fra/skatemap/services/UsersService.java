@@ -3,12 +3,16 @@ package fra.skatemap.services;
 import fra.skatemap.entities.Role;
 import fra.skatemap.entities.User;
 import fra.skatemap.entities.UserRole;
+import fra.skatemap.enums.Status_spot;
 import fra.skatemap.exceptions.BadRequestException;
 import fra.skatemap.exceptions.NotFoundException;
+import fra.skatemap.payloads.InfoUserDTO;
 import fra.skatemap.payloads.UsersDTO;
+import fra.skatemap.repositories.FavouriteSpotRepository;
 import fra.skatemap.repositories.SpotRepository;
 import fra.skatemap.repositories.UsersRepository;
 import jakarta.transaction.Transactional;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -16,6 +20,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class UsersService {
@@ -24,16 +29,19 @@ public class UsersService {
     private final RoleService roleService;
     private final UserRoleService userRoleService;
     private final SpotRepository spotRepository;
+    private final FavouriteSpotRepository favouriteSpotRepository;
 
     public UsersService(UsersRepository usersRepository,
                         PasswordEncoder encoder, RoleService roleService, UserRoleService userRoleService,
-                        SpotRepository spotRepository
+                        SpotRepository spotRepository,
+                        FavouriteSpotRepository favouriteSpotRepository
     ) {
         this.usersRepository = usersRepository;
         this.encoder = encoder;
         this.roleService = roleService;
         this.userRoleService = userRoleService;
         this.spotRepository = spotRepository;
+        this.favouriteSpotRepository = favouriteSpotRepository;
     }
 
     public User findByEmail(String email) {
@@ -79,5 +87,14 @@ public class UsersService {
         user.setUsername(usersDTO.username());
         return this.usersRepository.save(user);
 
+    }
+    public InfoUserDTO getUserMinimal(User user){
+        long nOfSpots = this.spotRepository.countByUserId(user.getId());
+        long nOfFav = this.favouriteSpotRepository.countByUserId(user.getId());
+        boolean existsPending = this.spotRepository.existsByStatus(Status_spot.PENDING);
+        return new InfoUserDTO(user.getUsername(),user.getEmail(),user.getName(),user.getSurname(),
+                user.getAuthorities().stream()
+                        .map(GrantedAuthority::getAuthority)
+                        .collect(Collectors.toList()),existsPending,nOfFav,nOfSpots);
     }
 }

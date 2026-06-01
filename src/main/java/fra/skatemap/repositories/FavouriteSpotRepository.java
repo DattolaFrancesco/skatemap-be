@@ -12,4 +12,5 @@ import java.util.UUID;
 public interface FavouriteSpotRepository extends JpaRepository<FavouriteSpot, UUID> {
     FavouriteSpot findBySpotIdAndUserId(UUID spotId, UUID userId);
     Page<FavouriteSpot> findByUserId(UUID userId, Pageable pageable);
+    long countByUserId(UUID id);
 }
