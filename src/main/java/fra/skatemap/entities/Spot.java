@@ -7,9 +7,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 @Entity
 @Table(name = "spots")
@@ -45,8 +43,8 @@ public class Spot {
     private User user;
     @OneToMany(mappedBy = "spot")
     private List<Media> media = new ArrayList<>();
-    @OneToMany(mappedBy = "spot", cascade = CascadeType.ALL,orphanRemoval = true)
-    private List<SpotType> spotTypes;
+    @OneToMany(mappedBy = "spot", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<SpotType> spotTypes = new HashSet<>();
     @OneToMany(mappedBy = "spot", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<FavouriteSpot> favourites = new ArrayList<>();
 
@@ -94,7 +92,7 @@ public class Spot {
         return risk;
     }
 
-    public List<SpotType> getSpotTypes() {
+    public Set<SpotType> getSpotTypes() {
         return spotTypes;
     }
 
@@ -154,7 +152,7 @@ public class Spot {
         this.risk = risk;
     }
 
-    public void setSpotTypes(List<SpotType> spotTypes) {
+    public void setSpotTypes(Set<SpotType> spotTypes) {
         this.spotTypes = spotTypes;
     }
 
