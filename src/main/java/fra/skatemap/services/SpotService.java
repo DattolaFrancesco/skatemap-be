@@ -76,6 +76,7 @@ public class SpotService {
         return spot;
     }
     public SpotResponseDTO toDTO(Spot spot) {
+        List<Media> allMedia = spot.getMedia();
         return new SpotResponseDTO(
                 spot.getId(),
                 spot.getName(),
@@ -91,10 +92,9 @@ public class SpotService {
                 spot.getSpotTypes().stream()
                         .map(st -> st.getType().getSpotType())
                         .toList(),
-                spot.getMedia().stream()
-                        .filter(s->s instanceof Video).toList(),
-                spot.getMedia().stream()
-                        .filter(s->s instanceof Image).toList());
+                allMedia.stream().filter(s -> s instanceof Video).toList(),
+                allMedia.stream().filter(s -> s instanceof Image).toList()
+        );
     }
     public SpotResponseDTO findById(UUID id){
         Spot spot = this.spotRepository.findById(id).orElseThrow(()-> new BadRequestException("spot doens't exist"));
@@ -171,7 +171,7 @@ public class SpotService {
         Page<Spot> spots = this.spotRepository.findAll(spot,pageable);
         return spots.map(s-> new SpotMinimalResponseDTO(
                 s.getId(),s.getName(),s.getLatitude(),s.getLongitude(),s.getCity(),
-                s.getMedia().stream().filter(m->m instanceof Image).toList().getFirst()));
+                s.getMedia().stream().filter(m->m instanceof Image).findFirst().orElse(null)));
     }
     public Page<SpotMinimalResponseDTO> getOwnSpots(User user, int page, int size, String sortBy, String status){
             if(user == null) throw new BadRequestException("user not authenticated");
@@ -181,7 +181,7 @@ public class SpotService {
                     (!status.equals("PENDING") && !status.equals("APPROVED") && !status.equals("UNAPPROVED"));
             if (!validStatus)return this.spotRepository.findByUserId(user.getId(),pageable).map(s-> new SpotMinimalResponseDTO(
                     s.getId(),s.getName(),s.getLatitude(),s.getLongitude(),s.getCity(),
-                    s.getMedia().stream().filter(m->m instanceof Image).toList().getFirst()));
+                    s.getMedia().stream().filter(m->m instanceof Image).findFirst().orElse(null)));
             else{
                  Status_spot statusSpot = switch (rightStatus){
                     case "PENDING" -> Status_spot.PENDING;
@@ -198,7 +198,7 @@ public class SpotService {
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy));
         return this.spotRepository.findByStatus(Status_spot.PENDING,pageable).map(s-> new SpotMinimalResponseDTO(
                 s.getId(),s.getName(),s.getLatitude(),s.getLongitude(),s.getCity(),
-                s.getMedia().stream().filter(m->m instanceof Image).toList().getFirst()));
+                s.getMedia().stream().filter(m->m instanceof Image).findFirst().orElse(null)));
     }
     public SpotResponseDTO modifyStatus(UUID id, String status) {
         Spot spot = this.spotRepository.findById(id)
