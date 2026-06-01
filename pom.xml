@@ -11,8 +11,6 @@
 	<groupId>fra</groupId>
 	<artifactId>skatemap</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name/>
-	<description/>
 	<properties>
 		<java.version>21</java.version>
 		<spring-ai.version>2.0.0-M4</spring-ai.version>
@@ -91,7 +89,6 @@
 			<artifactId>mailgun-java</artifactId>
 			<version>2.4.1</version>
 		</dependency>
-		<!-- unirest — tenuta solo la versione 4 core, rimossa la 3 duplicata -->
 		<dependency>
 			<groupId>com.konghq</groupId>
 			<artifactId>unirest-java-core</artifactId>
@@ -106,11 +103,20 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-actuator</artifactId>
 		</dependency>
-		<!-- jave — solo core + binari specifici per piattaforma -->
 		<dependency>
 			<groupId>ws.schild</groupId>
 			<artifactId>jave-core</artifactId>
-			<version>3.3.1</version>
+			<version>3.5.0</version>
+		</dependency>
+		<dependency>
+			<groupId>ws.schild</groupId>
+			<artifactId>jave-nativebin-linux64</artifactId>
+			<version>3.5.0</version>
+		</dependency>
+		<dependency>
+			<groupId>ws.schild</groupId>
+			<artifactId>jave-nativebin-osxm1</artifactId>
+			<version>3.5.0</version>
 		</dependency>
 		<dependency>
 			<groupId>com.twelvemonkeys.imageio</groupId>
@@ -134,31 +140,6 @@
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
-	<profiles>
-		<profile>
-			<id>dev</id>
-			<activation>
-				<activeByDefault>true</activeByDefault>
-			</activation>
-			<dependencies>
-				<dependency>
-					<groupId>ws.schild</groupId>
-					<artifactId>jave-nativebin-osx-m1</artifactId>
-					<version>3.3.1</version>
-				</dependency>
-			</dependencies>
-		</profile>
-		<profile>
-			<id>prod</id>
-			<dependencies>
-				<dependency>
-					<groupId>ws.schild</groupId>
-					<artifactId>jave-nativebin-linux64</artifactId>
-					<version>3.3.1</version>
-				</dependency>
-			</dependencies>
-		</profile>
-	</profiles>
 	<build>
 		<plugins>
 			<plugin>
