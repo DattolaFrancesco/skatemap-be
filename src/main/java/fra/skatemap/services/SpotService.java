@@ -166,22 +166,22 @@ public class SpotService {
         Page<Spot> spots = this.spotRepository.findAll(spot,pageable);
         return spots.map(s-> toDTO(s));
     }
-    public Page<SpotMinimalResponseDTO> filterMinimalSpots(Specification<Spot> spot, int page, int size, String sortBy){
+    public Page<SpotResponseOwnDTO> filterMinimalSpots(Specification<Spot> spot, int page, int size, String sortBy){
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy));
         Page<Spot> spots = this.spotRepository.findAll(spot,pageable);
-        return spots.map(s-> new SpotMinimalResponseDTO(
+        return spots.map(s-> new SpotResponseOwnDTO(
                 s.getId(),s.getName(),s.getLatitude(),s.getLongitude(),s.getCity(),
-                s.getMedia().stream().filter(m->m instanceof Image).findFirst().orElse(null)));
+                s.getMedia().stream().filter(m->m instanceof Image).findFirst().orElse(null),s.getStatus()));
     }
-    public Page<SpotMinimalResponseDTO> getOwnSpots(User user, int page, int size, String sortBy, String status){
+    public Page<SpotResponseOwnDTO> getOwnSpots(User user, int page, int size, String sortBy, String status){
             if(user == null) throw new BadRequestException("user not authenticated");
             Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy));
             String rightStatus = status.toUpperCase();
             boolean validStatus = status != null && !status.isBlank() &&
                     (!status.equals("PENDING") && !status.equals("APPROVED") && !status.equals("UNAPPROVED"));
-            if (!validStatus)return this.spotRepository.findByUserId(user.getId(),pageable).map(s-> new SpotMinimalResponseDTO(
+            if (!validStatus)return this.spotRepository.findByUserId(user.getId(),pageable).map(s-> new SpotResponseOwnDTO(
                     s.getId(),s.getName(),s.getLatitude(),s.getLongitude(),s.getCity(),
-                    s.getMedia().stream().filter(m->m instanceof Image).findFirst().orElse(null)));
+                    s.getMedia().stream().filter(m->m instanceof Image).findFirst().orElse(null),s.getStatus()));
             else{
                  Status_spot statusSpot = switch (rightStatus){
                     case "PENDING" -> Status_spot.PENDING;
@@ -189,9 +189,9 @@ public class SpotService {
                     case "UNAPPROVED" -> Status_spot.UNAPPROVED;
                      default -> Status_spot.APPROVED;
                 };
-                return this.spotRepository.findByStatusAndUserId(statusSpot,user.getId(),pageable).map(s-> new SpotMinimalResponseDTO(
+                return this.spotRepository.findByStatusAndUserId(statusSpot,user.getId(),pageable).map(s-> new SpotResponseOwnDTO(
                         s.getId(),s.getName(),s.getLatitude(),s.getLongitude(),s.getCity(),
-                        s.getMedia().stream().filter(m->m instanceof Image).toList().getFirst()));
+                        s.getMedia().stream().filter(m->m instanceof Image).toList().getFirst(),s.getStatus()));
             }
     }
     public Page<SpotMinimalResponseDTO> getPendingSpots( int page, int size, String sortBy){
