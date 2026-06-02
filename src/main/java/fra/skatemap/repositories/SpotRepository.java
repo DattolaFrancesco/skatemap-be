@@ -18,19 +18,10 @@ public interface SpotRepository extends JpaRepository<Spot, UUID>, JpaSpecificat
 
     boolean existsByName(String name);
     boolean existsByLatitudeAndLongitude(double latitude, double longitude);
-
-    @EntityGraph(attributePaths = {"media", "spotTypes", "spotTypes.type"})
     Page<Spot> findByStatus(Status_spot status, Pageable pageable);
-
-    @EntityGraph(attributePaths = {"media", "spotTypes", "spotTypes.type"})
     Page<Spot> findByStatusAndUserId(Status_spot status, UUID id, Pageable pageable);
-
-    @EntityGraph(attributePaths = {"media", "spotTypes", "spotTypes.type"})
     Page<Spot> findByUserId(UUID id, Pageable pageable);
-
-    @EntityGraph(attributePaths = {"media", "spotTypes", "spotTypes.type"})
     Page<Spot> findAll(Specification<Spot> spec, Pageable pageable);
-
     List<Spot> findByUserId(UUID id);
     long countByUserId(UUID id);
     boolean existsByStatus(Status_spot status);

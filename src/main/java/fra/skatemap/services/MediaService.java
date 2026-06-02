@@ -19,14 +19,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-import ws.schild.jave.Encoder;
-import ws.schild.jave.MultimediaObject;
-import ws.schild.jave.encode.AudioAttributes;
-import ws.schild.jave.encode.EncodingAttributes;
-import ws.schild.jave.encode.VideoAttributes;
-
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
@@ -52,31 +45,6 @@ public class MediaService {
         return out.toByteArray();
     }
 
-    private File compressVideo(MultipartFile file) throws Exception {
-        File tempInput = File.createTempFile("input_", ".mp4");
-        File tempOutput = File.createTempFile("output_", ".mp4");
-
-        file.transferTo(tempInput);
-
-        VideoAttributes video = new VideoAttributes();
-        video.setCodec("libx264");
-        video.setBitRate(1500000);
-
-        AudioAttributes audio = new AudioAttributes();
-        audio.setCodec("aac");
-        audio.setBitRate(128000);
-        audio.setSamplingRate(44100);
-
-        EncodingAttributes attrs = new EncodingAttributes();
-        attrs.setVideoAttributes(video);
-        attrs.setAudioAttributes(audio);
-        attrs.setOutputFormat("mp4");
-
-        new Encoder().encode(new MultimediaObject(tempInput), tempOutput, attrs);
-        tempInput.delete();
-
-        return tempOutput;
-    }
 
     private CloudinaryUploadResultImageDTO uploadImage(MultipartFile file) {
         try {
@@ -100,11 +68,9 @@ public class MediaService {
     }
 
     private CloudinaryUploadResultVideoDTO uploadVideo(MultipartFile file) {
-        File tempOutput = null;
         try {
-            tempOutput = compressVideo(file);
             Map uploadResult = this.cloudinaryConfig.cloudinary().uploader().upload(
-                    tempOutput,
+                    file.getBytes(),
                     ObjectUtils.asMap(
                             "resource_type", "video",
                             "quality", "auto",
@@ -120,8 +86,6 @@ public class MediaService {
             );
         } catch (Exception e) {
             throw new BadRequestException("Error uploading the video");
-        } finally {
-            if (tempOutput != null) tempOutput.delete();
         }
     }
 
@@ -140,7 +104,7 @@ public class MediaService {
         Tika tika = new Tika();
         for (MultipartFile file : files) {
             try {
-                String mimeType = tika.detect(file.getBytes());
+                String mimeType = tika.detect(file.getInputStream());
                 if (!mimeType.startsWith("image")) throw new BadRequestException("Files aren't images");
             } catch (IOException e) {
                 throw new BadRequestException("File is corrupted or unreadable");
@@ -159,7 +123,7 @@ public class MediaService {
         Tika tika = new Tika();
         for (MultipartFile file : files) {
             try {
-                String mimeType = tika.detect(file.getBytes());
+                String mimeType = tika.detect(file.getInputStream());
                 if (!mimeType.startsWith("video")) throw new BadRequestException("Files aren't video");
             } catch (IOException e) {
                 throw new BadRequestException("File is corrupted or unreadable");
