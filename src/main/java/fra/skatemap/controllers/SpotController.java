@@ -4,10 +4,7 @@ import fra.skatemap.config.SpotSpecification;
 import fra.skatemap.entities.Spot;
 import fra.skatemap.entities.User;
 import fra.skatemap.exceptions.BadRequestException;
-import fra.skatemap.payloads.ModifiedSpotDTO;
-import fra.skatemap.payloads.SpotMinimalResponseDTO;
-import fra.skatemap.payloads.SpotRequestDTO;
-import fra.skatemap.payloads.SpotResponseDTO;
+import fra.skatemap.payloads.*;
 import fra.skatemap.services.SpotService;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
@@ -36,7 +33,7 @@ public class SpotController {
     }
 
     @GetMapping("/all")
-    public Page<SpotMinimalResponseDTO> filterSpots(
+    public Page<SpotResponseOwnDTO> filterSpots(
             @RequestParam(required = false) List<String> continent,
             @RequestParam(required = false) List<String> risk,
             @RequestParam(required = false) List<String> type,
@@ -53,7 +50,7 @@ public class SpotController {
         return this.spotService.filterMinimalSpots(spec,page,size,sortBy);
     }
     @GetMapping("/globe/approved/all")
-    public Page<SpotMinimalResponseDTO> filterGlobeApprovedSpots(
+    public Page<SpotResponseOwnDTO> filterGlobeApprovedSpots(
             @RequestParam(required = false) List<String> continent,
             @RequestParam(required = false) List<String> risk,
             @RequestParam(required = false) List<String> type,
@@ -71,7 +68,7 @@ public class SpotController {
         return this.spotService.filterMinimalSpots(spec,page,size,sortBy);
     }
     @GetMapping("/approved/all")
-    public Page<SpotMinimalResponseDTO> filterApprovedSpots(
+    public Page<SpotResponseOwnDTO> filterApprovedSpots(
             @RequestParam(required = false) List<String> continent,
             @RequestParam(required = false) List<String> risk,
             @RequestParam(required = false) List<String> type,
@@ -93,7 +90,7 @@ public class SpotController {
         return this.spotService.findById(id);
     }
     @GetMapping("/own")
-    public Page<SpotMinimalResponseDTO> getOwnSpots(
+    public Page<SpotResponseOwnDTO> getOwnSpots(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "") String status,
             @RequestParam(defaultValue = "500") int size,
