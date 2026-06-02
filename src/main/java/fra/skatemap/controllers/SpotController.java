@@ -9,8 +9,10 @@ import fra.skatemap.payloads.SpotMinimalResponseDTO;
 import fra.skatemap.payloads.SpotRequestDTO;
 import fra.skatemap.payloads.SpotResponseDTO;
 import fra.skatemap.services.SpotService;
+import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -33,17 +35,6 @@ public class SpotController {
         this.spotService = spotService;
     }
 
-    @PostMapping
-    public Spot save(@RequestBody @Validated SpotRequestDTO body, BindingResult validation,@AuthenticationPrincipal User user){
-        if (validation.hasErrors()) {
-            String errors = validation.getAllErrors()
-                    .stream()
-                    .map(e -> e.getDefaultMessage())
-                    .collect(Collectors.joining(", "));
-            throw new BadRequestException("invalid data: " + errors);
-        }
-        return this.spotService.save(body,user);
-    }
     @GetMapping("/all")
     public Page<SpotMinimalResponseDTO> filterSpots(
             @RequestParam(required = false) List<String> continent,
@@ -143,12 +134,30 @@ public class SpotController {
         return this.spotService.modifyStatus(id, status);
     }
 
-    @PostMapping(value = "/upload/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(value = "/modify/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public String modifyAll(
             @PathVariable UUID id,
             @RequestPart("spot") ModifiedSpotDTO spot,
             @RequestPart(value = "media", required = false) List<MultipartFile> media) {
        return this.spotService.modifyAll(id,spot,media);
     }
-
+    @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public String uploadAll(
+            @RequestPart("spot") @Valid SpotRequestDTO spot,
+            @RequestPart(value = "media", required = false) List<MultipartFile> media,
+            @AuthenticationPrincipal User user) {
+        this.spotService.saveAll(spot,media,user);
+        return "Spot created";
+    }
+    @PostMapping
+    public Spot save(@RequestBody @Validated SpotRequestDTO body, BindingResult validation,@AuthenticationPrincipal User user){
+        if (validation.hasErrors()) {
+            String errors = validation.getAllErrors()
+                    .stream()
+                    .map(e -> e.getDefaultMessage())
+                    .collect(Collectors.joining(", "));
+            throw new BadRequestException("invalid data: " + errors);
+        }
+        return this.spotService.save(body,user);
+    }
 }

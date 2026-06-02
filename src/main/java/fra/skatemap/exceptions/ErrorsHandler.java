@@ -6,6 +6,7 @@ import fra.skatemap.payloads.ErrorsWithListDTO;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authorization.AuthorizationDeniedException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.stream.Collectors;
 
 @RestControllerAdvice
 public class ErrorsHandler {
@@ -22,8 +24,15 @@ public class ErrorsHandler {
     public ErrorsDTO handleBadRequest(BadRequestException ex) {
         return new ErrorsDTO(ex.getMessage(), LocalDateTime.now());
     }
-
-
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorsDTO handleValidation(MethodArgumentNotValidException e) {
+        String message = e.getBindingResult().getAllErrors()
+                .stream()
+                .map(err -> err.getDefaultMessage())
+                .collect(Collectors.joining(", "));
+        return new ErrorsDTO(message, LocalDateTime.now());
+    }
     @ExceptionHandler(ValidationException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST) // 400
     public ErrorsWithListDTO handleValidationErrors(ValidationException ex) {

@@ -250,4 +250,36 @@ public class SpotService {
         return modifiedSpotDTO.name() + " modified with success";
 
     }
+    public void saveAll(SpotRequestDTO spot,List<MultipartFile> media,User user){
+        if(media == null || media.isEmpty()) throw new BadRequestException("we need at least one image!");
+        Spot newSpot = this.save(spot,user);
+        List<MultipartFile> image = new ArrayList<>();
+        List<MultipartFile> video = new ArrayList<>();
+        Tika tika = new Tika();
+        if (media != null && !media.isEmpty()) {
+            for (MultipartFile medias : media) {
+                try {
+                    String mimeType = tika.detect(medias.getInputStream());
+                    if (mimeType != null && mimeType.startsWith("image/gif")) {
+                        throw new BadRequestException("GIF files are not supported");
+                    }
+                    if (mimeType.startsWith("image")) {
+                        image.add(medias);
+                    } else if (mimeType.startsWith("video")) {
+                        video.add(medias);
+                    } else {
+                        throw new BadRequestException("Unsupported file type: " + mimeType);
+                    }
+                } catch (IOException e) {
+                    throw new BadRequestException("File is corrupted or unreadable");
+                }
+            }}
+        try {
+            if (!image.isEmpty()) mediaService.saveImage(newSpot, image);
+            if (!video.isEmpty()) mediaService.saveVideo(newSpot, video);
+        } catch (Exception e) {
+            this.deleteById(newSpot.getId());
+            throw new BadRequestException(e.getMessage());
+        }
+    }
 }
