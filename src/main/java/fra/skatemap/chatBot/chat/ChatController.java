@@ -2,17 +2,20 @@ package fra.skatemap.chatBot.chat;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import fra.skatemap.chatBot.DTO.BotResponseDTO;
 import fra.skatemap.chatBot.DTO.SpotBotDTO;
 import fra.skatemap.chatBot.DTO.SpotSearchParamsDTO;
 import fra.skatemap.config.SpotSpecification;
 import fra.skatemap.entities.Spot;
 import fra.skatemap.repositories.SpotRepository;
+import fra.skatemap.services.ChatBotService;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.openai.OpenAiChatOptions;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 
@@ -25,11 +28,14 @@ public class ChatController {
     private final ChatClient chatClient;
     private final SpotRepository spotRepository;
     private final ObjectMapper objectMapper;
+    private final ChatBotService chatBotService;
 
-    public ChatController(ChatClient.Builder builder, SpotRepository spotRepository, ObjectMapper objectMapper) {
+    public ChatController(ChatClient.Builder builder, SpotRepository spotRepository,
+                          ObjectMapper objectMapper, ChatBotService chatBotService) {
         this.chatClient = builder.build();
         this.spotRepository = spotRepository;
         this.objectMapper = objectMapper;
+        this.chatBotService = chatBotService;
     }
 
     private String extractParams(String message) {
@@ -175,5 +181,15 @@ public class ChatController {
                 .stream()
                 .content()
                 .concatWith(Flux.just(responseAdded));
+    }
+
+    @PutMapping("/status")
+    @PreAuthorize("hasAuthority('super_admin')")
+    public BotResponseDTO swicthStatus(){
+        return this.chatBotService.switchStatus();
+    }
+    @GetMapping("/get/status")
+    public BotResponseDTO getStatus(){
+        return this.chatBotService.getStatus();
     }
 }
