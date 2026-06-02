@@ -88,7 +88,7 @@ public class SpotController {
                 .and(SpotSpecification.hasSearch(search));
         return this.spotService.filterMinimalSpots(spec,page,size,sortBy);
     }
-    @GetMapping("/{id}")
+    @GetMapping("/single/{id}")
     public SpotResponseDTO getSpot(@PathVariable UUID id){
         return this.spotService.findById(id);
     }
