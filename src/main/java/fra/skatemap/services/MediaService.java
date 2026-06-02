@@ -70,7 +70,7 @@ public class MediaService {
     private CloudinaryUploadResultVideoDTO uploadVideo(MultipartFile file) {
         try {
             Map uploadResult = this.cloudinaryConfig.cloudinary().uploader().upload(
-                    file.getBytes(),
+                    file.getInputStream(),
                     ObjectUtils.asMap(
                             "resource_type", "video",
                             "quality", "auto",
