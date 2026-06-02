@@ -37,16 +37,10 @@ public class TokenFilter extends OncePerRequestFilter {
         String accessToken = authHeader.replace("Bearer ", "");
         try {
             tokenTools.verifyToken(accessToken);
-           User authenticatedUser;
             UUID userId = this.tokenTools.extractIdFromToken(accessToken);
-            authenticatedUser = this.usersService.findById(userId);
-            System.out.println(">>> USER: " + authenticatedUser.getUsername());
-            System.out.println(">>> AUTHORITIES: " + authenticatedUser.getAuthorities());
-            Authentication authentication = new UsernamePasswordAuthenticationToken(authenticatedUser, null, authenticatedUser.getAuthorities());
-            SecurityContextHolder.getContext().setAuthentication(authentication);
-            authenticatedUser = this.usersService.findById(userId);
+            User authenticatedUser = this.usersService.findById(userId);
            Authentication auth = new UsernamePasswordAuthenticationToken(authenticatedUser, null, authenticatedUser.getAuthorities());
-            SecurityContextHolder.getContext().setAuthentication(authentication);
+            SecurityContextHolder.getContext().setAuthentication(auth);
         } catch (NotAuthorized ex) {
             System.out.println(ex.getMessage());
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, ex.getMessage());

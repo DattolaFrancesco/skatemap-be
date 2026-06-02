@@ -218,7 +218,7 @@ public class SpotService {
         if (files != null && !files.isEmpty()) {
         for (MultipartFile file : files) {
             try {
-                String mimeType = tika.detect(file.getBytes());
+                String mimeType = tika.detect(file.getInputStream());
                 if (mimeType != null && mimeType.startsWith("image/gif")) {
                     throw new BadRequestException("GIF files are not supported");
                 }
