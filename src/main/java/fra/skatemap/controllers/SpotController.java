@@ -139,12 +139,12 @@ public class SpotController {
        return this.spotService.modifyAll(id,spot,media);
     }
     @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public String uploadAll(
+    public MessageDTO uploadAll(
             @RequestPart("spot") @Valid SpotRequestDTO spot,
             @RequestPart(value = "media", required = false) List<MultipartFile> media,
             @AuthenticationPrincipal User user) {
         this.spotService.saveAll(spot,media,user);
-        return "Spot created";
+        return new MessageDTO("SPOT CREATED") ;
     }
     @PostMapping
     public Spot save(@RequestBody @Validated SpotRequestDTO body, BindingResult validation,@AuthenticationPrincipal User user){
