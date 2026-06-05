@@ -5,11 +5,13 @@ import fra.skatemap.entities.User;
 import fra.skatemap.payloads.FavouriteSpotResponseDTO;
 import fra.skatemap.payloads.SpotMinimalResponseDTO;
 import fra.skatemap.payloads.SpotResponseDTO;
+import fra.skatemap.payloads.SpotsQueryDTO;
 import fra.skatemap.services.FavouriteSpotService;
 import org.springframework.data.domain.Page;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -30,11 +32,8 @@ public class FavouriteSpotController {
         return this.favouriteSpotService.findSingleFav(spotId, user);
     }
     @GetMapping("/all")
-    public Page<SpotMinimalResponseDTO> findFav(@AuthenticationPrincipal User user,
-                                                @RequestParam(defaultValue = "0") int page,
-                                                @RequestParam(defaultValue = "500") int size,
-                                                @RequestParam(defaultValue = "spot.name") String sortBy){
-        return this.favouriteSpotService.findFav(user, page, size, sortBy);
+    public List<SpotsQueryDTO> findFav(@AuthenticationPrincipal User user){
+        return this.favouriteSpotService.findFav(user);
     }
     @DeleteMapping("/{spotId}")
     public void deleteBySpotIdAndUserId(@PathVariable UUID spotId, @AuthenticationPrincipal User user){

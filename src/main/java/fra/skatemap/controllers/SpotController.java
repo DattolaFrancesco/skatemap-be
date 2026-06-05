@@ -32,7 +32,7 @@ public class SpotController {
         this.spotService = spotService;
     }
 
-    @GetMapping("/all")
+  /*  @GetMapping("/all")
     public Page<SpotResponseOwnDTO> filterSpots(
             @RequestParam(required = false) List<String> continent,
             @RequestParam(required = false) List<String> risk,
@@ -48,7 +48,7 @@ public class SpotController {
                 .and(SpotSpecification.hasType(type))
                 .and(SpotSpecification.hasSearch(search));
         return this.spotService.filterMinimalSpots(spec,page,size,sortBy);
-    }
+    }*/
     @GetMapping("/globe/approved/all")
     public Page<SpotResponseOwnDTO> filterGlobeApprovedSpots(
             @RequestParam(required = false) List<String> continent,
@@ -156,5 +156,13 @@ public class SpotController {
             throw new BadRequestException("invalid data: " + errors);
         }
         return this.spotService.save(body,user);
+    }
+    @GetMapping("/all/{status}")
+    public List<SpotListResponseDTO> findAllList(@PathVariable String status ){
+        return this.spotService.findListAll(status);
+    }
+    @GetMapping("/all")
+    public List<SpotListResponseDTO> findAllStatusList( ){
+        return this.spotService.findListAllStatus();
     }
 }

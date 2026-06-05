@@ -18,9 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 public class SpotService {
@@ -281,5 +279,58 @@ public class SpotService {
             this.deleteById(newSpot.getId());
             throw new BadRequestException(e.getMessage());
         }
+    }
+    public List<SpotListResponseDTO> findListAll(String status){
+            Status_spot statusSpot = Status_spot.valueOf(status.toUpperCase());
+            List<SpotsQueryDTO> spots = this.spotRepository.findAllForList((statusSpot));
+            List<Object[]> typesRaw = this.spotRepository.findAllSpotTypes(statusSpot);
+            Map<UUID,List<String>> typesMap = new HashMap<>();
+            for (Object[] row : typesRaw) {
+                UUID spotId = (UUID) row[0];
+                String type = (String) row[1];
+                typesMap.computeIfAbsent(spotId, k -> new ArrayList<>()).add(type); // find the row if exist it add type otherwise it create the row with type
+            }
+        return spots.stream()
+                .map(s -> new SpotListResponseDTO(
+                        s.id(),
+                        s.name(),
+                        s.latitude(),
+                        s.longitude(),
+                        s.city(),
+                        s.continent(),
+                        s.risk(),
+                        s.country(),
+                        typesMap.getOrDefault(s.id(), List.of()),
+                        s.thumbnailUrl(),
+                        s.status()
+                ))
+                .toList();
+
+    }
+    public List<SpotListResponseDTO> findListAllStatus(){
+            List<SpotsQueryDTO> spots = this.spotRepository.findAllStatusForList();
+            List<Object[]> typesRaw = this.spotRepository.findAllStatusSpotTypes();
+            Map<UUID,List<String>> typesMap = new HashMap<>();
+            for (Object[] row : typesRaw) {
+                UUID spotId = (UUID) row[0];
+                String type = (String) row[1];
+                typesMap.computeIfAbsent(spotId, k -> new ArrayList<>()).add(type); // find the row if exist it add type otherwise it create the row with type
+            }
+        return spots.stream()
+                .map(s -> new SpotListResponseDTO(
+                        s.id(),
+                        s.name(),
+                        s.latitude(),
+                        s.longitude(),
+                        s.city(),
+                        s.continent(),
+                        s.risk(),
+                        s.country(),
+                        typesMap.getOrDefault(s.id(), List.of()),
+                        s.thumbnailUrl(),
+                        s.status()
+                ))
+                .toList();
+
     }
 }
