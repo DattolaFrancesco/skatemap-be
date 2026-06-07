@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
@@ -34,18 +35,21 @@ public class MediaService {
         this.mediaRepository = mediaRepository;
         this.cloudinaryConfig = cloudinaryConfig;
     }
+
     private void resizeImage(MultipartFile file, File dest) throws IOException {
-        Thumbnails.of(file.getInputStream())
-                .size(1280, 720)
-                .outputQuality(0.80)
-                .outputFormat("jpg")
-                .toFile(dest);
+        try (FileOutputStream out = new FileOutputStream(dest)) {
+            Thumbnails.of(file.getInputStream())
+                    .size(1280, 720)
+                    .outputQuality(0.80)
+                    .outputFormat("jpg")
+                    .toOutputStream(out);
+        }
     }
 
     private CloudinaryUploadResultImageDTO uploadImage(MultipartFile file) {
         File tempFile = null;
         try {
-            tempFile = File.createTempFile("upload_", "_image.jpg"); // aggiunge .jpg
+            tempFile = File.createTempFile("upload_", "_image.jpg");
             resizeImage(file, tempFile);
             Map uploadResult = this.cloudinaryConfig.cloudinary().uploader().upload(
                     tempFile,
@@ -62,6 +66,8 @@ public class MediaService {
             );
         } catch (IOException e) {
             throw new BadRequestException("Error uploading the image");
+        } catch (Exception e) {
+            throw new BadRequestException("Cloudinary error: " + e.getMessage());
         } finally {
             if (tempFile != null && tempFile.exists()) {
                 tempFile.delete();
@@ -89,8 +95,10 @@ public class MediaService {
                     uploadResult.get("resource_type").toString(),
                     buildThumbnailUrl(videoUrl)
             );
+        } catch (IOException e) {
+            throw new BadRequestException("Error uploading the video");
         } catch (Exception e) {
-            throw new BadRequestException(e.getMessage());
+            throw new BadRequestException("Cloudinary error: " + e.getMessage());
         } finally {
             if (tempFile != null && tempFile.exists()) {
                 tempFile.delete();
@@ -113,7 +121,7 @@ public class MediaService {
         Tika tika = new Tika();
         for (MultipartFile file : files) {
             try {
-                String mimeType = tika.detect(file.getInputStream());
+                String mimeType = tika.detect(file.getInputStream(), file.getOriginalFilename());
                 if (!mimeType.startsWith("image")) throw new BadRequestException("Files aren't images");
             } catch (IOException e) {
                 throw new BadRequestException("File is corrupted or unreadable");
@@ -126,13 +134,13 @@ public class MediaService {
     @Transactional
     public void saveVideo(Spot spot, List<MultipartFile> files) {
         if (files == null || files.isEmpty()) return;
-        if (this.mediaRepository.countBySpotAndFormat(spot, "video") > 3 || files.size() > 3 ||
-                this.mediaRepository.countBySpotAndFormat(spot, "video") + files.size() > 3)
-            throw new BadRequestException("you can only upload 3 videos");
+        if (this.mediaRepository.countBySpotAndFormat(spot, "video") > 1 || files.size() > 1 ||
+                this.mediaRepository.countBySpotAndFormat(spot, "video") + files.size() > 1)
+            throw new BadRequestException("you can only upload 1 video");
         Tika tika = new Tika();
         for (MultipartFile file : files) {
             try {
-                String mimeType = tika.detect(file.getInputStream());
+                String mimeType = tika.detect(file.getInputStream(), file.getOriginalFilename());
                 if (!mimeType.startsWith("video")) throw new BadRequestException("Files aren't video");
             } catch (IOException e) {
                 throw new BadRequestException("File is corrupted or unreadable");
