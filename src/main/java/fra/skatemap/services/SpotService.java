@@ -205,43 +205,73 @@ public class SpotService {
         return toDTO(this.spotRepository.save(spot));
     }
     @Transactional
-    public String modifyAll(UUID id, ModifiedSpotDTO modifiedSpotDTO, List<MultipartFile> files) {
-        Spot spot = findSpotById(id);
-        modifiedSpotDTO.eliminatedMedia().forEach(m -> this.mediaService.deleteById(UUID.fromString(m)));
+    public String modifyAll(UUID id, ModifiedSpotDTO modifiedSpotDTO, List<MultipartFile> files){
+        Spot spot = findSpotById(id); // find spot
+        // delete existing media  that need to go
+        modifiedSpotDTO.eliminatedMedia().forEach(m->this.mediaService.deleteById(UUID.fromString(m)));
+        // get if the media are video or img
         List<MultipartFile> image = new ArrayList<>();
         List<MultipartFile> video = new ArrayList<>();
+        Tika tika = new Tika();
         if (files != null && !files.isEmpty()) {
-            for (MultipartFile file : files) {
-                String contentType = file.getContentType();
-                if (contentType == null) throw new BadRequestException("File type undetectable");
-                if (contentType.equals("image/gif")) throw new BadRequestException("GIF files are not supported");
-                if (contentType.startsWith("image")) image.add(file);
-                else if (contentType.startsWith("video")) video.add(file);
-                else throw new BadRequestException("Unsupported file type: " + contentType);
+        for (MultipartFile file : files) {
+            try {
+                String mimeType = tika.detect(file.getInputStream());
+                if (mimeType != null && mimeType.startsWith("image/gif")) {
+                    throw new BadRequestException("GIF files are not supported");
+                }
+                if (mimeType.startsWith("image")) {
+                    image.add(file);
+                } else if (mimeType.startsWith("video")) {
+                    video.add(file);
+                } else {
+                    throw new BadRequestException("Unsupported file type: " + mimeType);
+                }
+
+            } catch (IOException e) {
+                throw new BadRequestException("File is corrupted or unreadable");
             }
+        }}
+        // saving new imgs
+        if (!image.isEmpty()) {
+            mediaService.saveImage(spot, image);
         }
-        if (!image.isEmpty()) mediaService.saveImage(spot, image);
-        if (!video.isEmpty()) mediaService.saveVideo(spot, video);
-        modifyById(id, new SpotRequestDTO(
+        if (!video.isEmpty()) {
+            mediaService.saveVideo(spot, video);
+        }
+        //save new info in spot
+        modifyById(id,new SpotRequestDTO(
                 modifiedSpotDTO.name(), modifiedSpotDTO.latitude(), modifiedSpotDTO.longitude(),
-                modifiedSpotDTO.description(), modifiedSpotDTO.risk(), modifiedSpotDTO.continent(),
-                modifiedSpotDTO.country(), modifiedSpotDTO.city(), modifiedSpotDTO.street(),
+                modifiedSpotDTO.description(), modifiedSpotDTO.risk(),modifiedSpotDTO.continent()
+                , modifiedSpotDTO.country(), modifiedSpotDTO.city(), modifiedSpotDTO.street(),
                 modifiedSpotDTO.types()));
         return modifiedSpotDTO.name() + " modified with success";
+
     }
-    public void saveAll(SpotRequestDTO spot, List<MultipartFile> media, User user) {
-        if (media == null || media.isEmpty()) throw new BadRequestException("we need at least one image!");
-        Spot newSpot = this.save(spot, user);
+    public void saveAll(SpotRequestDTO spot,List<MultipartFile> media,User user){
+        if(media == null || media.isEmpty()) throw new BadRequestException("we need at least one image!");
+        Spot newSpot = this.save(spot,user);
         List<MultipartFile> image = new ArrayList<>();
         List<MultipartFile> video = new ArrayList<>();
-        for (MultipartFile file : media) {
-            String contentType = file.getContentType();
-            if (contentType == null) throw new BadRequestException("File type undetectable");
-            if (contentType.equals("image/gif")) throw new BadRequestException("GIF files are not supported");
-            if (contentType.startsWith("image")) image.add(file);
-            else if (contentType.startsWith("video")) video.add(file);
-            else throw new BadRequestException("Unsupported file type: " + contentType);
-        }
+        Tika tika = new Tika();
+        if (media != null && !media.isEmpty()) {
+            for (MultipartFile medias : media) {
+                try {
+                    String mimeType = tika.detect(medias.getInputStream());
+                    if (mimeType != null && mimeType.startsWith("image/gif")) {
+                        throw new BadRequestException("GIF files are not supported");
+                    }
+                    if (mimeType.startsWith("image")) {
+                        image.add(medias);
+                    } else if (mimeType.startsWith("video")) {
+                        video.add(medias);
+                    } else {
+                        throw new BadRequestException("Unsupported file type: " + mimeType);
+                    }
+                } catch (IOException e) {
+                    throw new BadRequestException("File is corrupted or unreadable");
+                }
+            }}
         try {
             if (!image.isEmpty()) mediaService.saveImage(newSpot, image);
             if (!video.isEmpty()) mediaService.saveVideo(newSpot, video);
