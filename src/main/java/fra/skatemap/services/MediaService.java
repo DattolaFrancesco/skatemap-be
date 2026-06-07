@@ -19,7 +19,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
@@ -35,18 +34,6 @@ public class MediaService {
         this.mediaRepository = mediaRepository;
         this.cloudinaryConfig = cloudinaryConfig;
     }
-
-    private byte[] resizeImage(MultipartFile file) throws IOException {
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        Thumbnails.of(file.getInputStream())
-                .size(1280, 720)
-                .outputQuality(0.80)
-                .outputFormat("jpg")
-                .toOutputStream(out);
-        return out.toByteArray();
-    }
-
-
     private void resizeImage(MultipartFile file, File dest) throws IOException {
         Thumbnails.of(file.getInputStream())
                 .size(1280, 720)
@@ -58,7 +45,7 @@ public class MediaService {
     private CloudinaryUploadResultImageDTO uploadImage(MultipartFile file) {
         File tempFile = null;
         try {
-            tempFile = File.createTempFile("upload_", "_image");
+            tempFile = File.createTempFile("upload_", "_image.jpg"); // aggiunge .jpg
             resizeImage(file, tempFile);
             Map uploadResult = this.cloudinaryConfig.cloudinary().uploader().upload(
                     tempFile,
