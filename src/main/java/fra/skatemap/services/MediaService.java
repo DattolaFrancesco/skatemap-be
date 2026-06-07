@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
@@ -68,9 +69,12 @@ public class MediaService {
     }
 
     private CloudinaryUploadResultVideoDTO uploadVideo(MultipartFile file) {
+        File tempFile = null;
         try {
+            tempFile = File.createTempFile("upload_", "_video");
+            file.transferTo(tempFile);
             Map uploadResult = this.cloudinaryConfig.cloudinary().uploader().upload(
-                    file.getInputStream(),
+                    tempFile,
                     ObjectUtils.asMap(
                             "resource_type", "video",
                             "quality", "auto",
@@ -85,7 +89,11 @@ public class MediaService {
                     buildThumbnailUrl(videoUrl)
             );
         } catch (Exception e) {
-            throw new BadRequestException("Error uploading the video");
+            throw new BadRequestException(e.getMessage());
+        } finally {
+            if (tempFile != null && tempFile.exists()) {
+                tempFile.delete();
+            }
         }
     }
 
