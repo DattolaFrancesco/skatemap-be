@@ -47,11 +47,21 @@ public class MediaService {
     }
 
 
+    private void resizeImage(MultipartFile file, File dest) throws IOException {
+        Thumbnails.of(file.getInputStream())
+                .size(1280, 720)
+                .outputQuality(0.80)
+                .outputFormat("jpg")
+                .toFile(dest);
+    }
+
     private CloudinaryUploadResultImageDTO uploadImage(MultipartFile file) {
+        File tempFile = null;
         try {
-            byte[] resized = resizeImage(file);
+            tempFile = File.createTempFile("upload_", "_image");
+            resizeImage(file, tempFile);
             Map uploadResult = this.cloudinaryConfig.cloudinary().uploader().upload(
-                    resized,
+                    tempFile,
                     ObjectUtils.asMap(
                             "resource_type", "image",
                             "quality", "auto",
@@ -65,6 +75,10 @@ public class MediaService {
             );
         } catch (IOException e) {
             throw new BadRequestException("Error uploading the image");
+        } finally {
+            if (tempFile != null && tempFile.exists()) {
+                tempFile.delete();
+            }
         }
     }
 
