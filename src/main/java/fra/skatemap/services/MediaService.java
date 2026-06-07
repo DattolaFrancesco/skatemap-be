@@ -12,7 +12,6 @@ import fra.skatemap.payloads.CloudinaryUploadResultImageDTO;
 import fra.skatemap.payloads.CloudinaryUploadResultVideoDTO;
 import fra.skatemap.repositories.MediaRepository;
 import net.coobird.thumbnailator.Thumbnails;
-import org.apache.tika.Tika;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -36,23 +35,24 @@ public class MediaService {
         this.cloudinaryConfig = cloudinaryConfig;
     }
 
-    private void resizeImage(MultipartFile file, File dest) throws IOException {
-        try (FileOutputStream out = new FileOutputStream(dest)) {
-            Thumbnails.of(file.getInputStream())
-                    .size(1280, 720)
-                    .outputQuality(0.80)
-                    .outputFormat("jpg")
-                    .toOutputStream(out);
-        }
-    }
-
     private CloudinaryUploadResultImageDTO uploadImage(MultipartFile file) {
-        File tempFile = null;
+        File tempRaw = null;
+        File tempResized = null;
         try {
-            tempFile = File.createTempFile("upload_", "_image.jpg");
-            resizeImage(file, tempFile);
+            tempRaw = File.createTempFile("raw_", "_image");
+            file.transferTo(tempRaw);
+
+            tempResized = File.createTempFile("resized_", "_image.jpg");
+            try (FileOutputStream out = new FileOutputStream(tempResized)) {
+                Thumbnails.of(tempRaw)
+                        .size(1280, 720)
+                        .outputQuality(0.80)
+                        .outputFormat("jpg")
+                        .toOutputStream(out);
+            }
+
             Map uploadResult = this.cloudinaryConfig.cloudinary().uploader().upload(
-                    tempFile,
+                    tempResized,
                     ObjectUtils.asMap(
                             "resource_type", "image",
                             "quality", "auto",
@@ -65,13 +65,12 @@ public class MediaService {
                     uploadResult.get("resource_type").toString()
             );
         } catch (IOException e) {
-            throw new BadRequestException("Error uploading the image");
+            throw new BadRequestException("Error uploading the image: " + e.getMessage());
         } catch (Exception e) {
             throw new BadRequestException("Cloudinary error: " + e.getMessage());
         } finally {
-            if (tempFile != null && tempFile.exists()) {
-                tempFile.delete();
-            }
+            if (tempRaw != null && tempRaw.exists()) tempRaw.delete();
+            if (tempResized != null && tempResized.exists()) tempResized.delete();
         }
     }
 
@@ -96,13 +95,11 @@ public class MediaService {
                     buildThumbnailUrl(videoUrl)
             );
         } catch (IOException e) {
-            throw new BadRequestException("Error uploading the video");
+            throw new BadRequestException("Error uploading the video: " + e.getMessage());
         } catch (Exception e) {
             throw new BadRequestException("Cloudinary error: " + e.getMessage());
         } finally {
-            if (tempFile != null && tempFile.exists()) {
-                tempFile.delete();
-            }
+            if (tempFile != null && tempFile.exists()) tempFile.delete();
         }
     }
 
@@ -118,14 +115,10 @@ public class MediaService {
         if (this.mediaRepository.countBySpotAndFormat(spot, "image") > 5 || files.size() > 5 ||
                 this.mediaRepository.countBySpotAndFormat(spot, "image") + files.size() > 5)
             throw new BadRequestException("you can only upload 5 images");
-        Tika tika = new Tika();
         for (MultipartFile file : files) {
-            try {
-                String mimeType = tika.detect(file.getInputStream(), file.getOriginalFilename());
-                if (!mimeType.startsWith("image")) throw new BadRequestException("Files aren't images");
-            } catch (IOException e) {
-                throw new BadRequestException("File is corrupted or unreadable");
-            }
+            String contentType = file.getContentType();
+            if (contentType == null || !contentType.startsWith("image"))
+                throw new BadRequestException("File isn't an image");
             CloudinaryUploadResultImageDTO body = uploadImage(file);
             this.mediaRepository.save(new Image(spot, body.url(), body.publicId()));
         }
@@ -137,14 +130,10 @@ public class MediaService {
         if (this.mediaRepository.countBySpotAndFormat(spot, "video") > 1 || files.size() > 1 ||
                 this.mediaRepository.countBySpotAndFormat(spot, "video") + files.size() > 1)
             throw new BadRequestException("you can only upload 1 video");
-        Tika tika = new Tika();
         for (MultipartFile file : files) {
-            try {
-                String mimeType = tika.detect(file.getInputStream(), file.getOriginalFilename());
-                if (!mimeType.startsWith("video")) throw new BadRequestException("Files aren't video");
-            } catch (IOException e) {
-                throw new BadRequestException("File is corrupted or unreadable");
-            }
+            String contentType = file.getContentType();
+            if (contentType == null || !contentType.startsWith("video"))
+                throw new BadRequestException("File isn't a video");
             CloudinaryUploadResultVideoDTO body = uploadVideo(file);
             this.mediaRepository.save(new Video(spot, body.url(), body.publicId(), body.thumbnailUrl()));
         }
