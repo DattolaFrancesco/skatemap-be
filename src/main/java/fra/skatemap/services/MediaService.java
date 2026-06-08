@@ -15,8 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
@@ -31,27 +30,23 @@ public class MediaService {
         this.storageService = storageService;
     }
 
-    private byte[] resizeImage(MultipartFile file) throws IOException {
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        Thumbnails.of(file.getInputStream())
-                .size(1280, 720)
-                .outputQuality(0.80)
-                .outputFormat("jpg")
-                .toOutputStream(out);
-        return out.toByteArray();
-    }
 
 
     private String uploadImage(MultipartFile file) {
+        File temp = null;
         try {
-            byte[] resized = resizeImage(file);
-            String key = this.storageService.uploadImage(
-                    new ByteArrayInputStream(resized),
-                            file.getOriginalFilename(),
-                            resized.length);
+            temp = File.createTempFile("resized-",".jpg");
+            Thumbnails.of(file.getInputStream())
+                    .size(1280, 720)
+                    .outputQuality(0.80)
+                    .outputFormat("jpg")
+                    .toFile(temp);
+            String key = this.storageService.uploadImage(temp,file.getOriginalFilename());
             return this.storageService.getPublicUrl(key);
         } catch (IOException e) {
             throw new BadRequestException("Error uploading the image");
+        } finally {
+            if(temp != null) temp.delete();
         }
     }
 
@@ -62,6 +57,8 @@ public class MediaService {
                 this.mediaRepository.countBySpotAndFormat(spot, "image") + files.size() > 5)
             throw new BadRequestException("you can only upload 5 images");
         for (MultipartFile file : files) {
+            if (file.getSize() > 3 * 1024 * 1024)
+                throw new BadRequestException("Image too large, max 3MB");
             validateMimeType(file, "image");
             String url = uploadImage(file);
             this.mediaRepository.save(new Image(spot, url, extractKeyFromUrl(url)));
@@ -74,7 +71,7 @@ public class MediaService {
         }
     }
     private String extractKeyFromUrl(String url) {
-        return url.substring(url.indexOf("/file/post-processed/") + "/file/post-processed/".length());
+        return url.substring(url.indexOf(".r2.dev/") + ".r2.dev/".length());
     }
 
    @Transactional
@@ -84,17 +81,18 @@ public class MediaService {
                 this.mediaRepository.countBySpotAndFormat(spot, "video") + files.size() > 1)
             throw new BadRequestException("you can only upload 1 videos");
        for (MultipartFile file : files) {
-           try{
-           validateMimeType(file, "video");
-           String key = this.storageService.uploadRawVideo(
-                   file.getInputStream(),
-                   file.getOriginalFilename(),
-                   file.getSize());
-           String url = this.storageService.getRawUrl(key);
-           this.mediaRepository.save((new Video(spot,url,key,null)));
-           }
-           catch (IOException e) {
+           File temp = null;
+           try {
+               validateMimeType(file, "video");
+               temp = File.createTempFile("video-", ".mp4");
+               file.transferTo(temp);   // Spring scrive il contenuto su disco (spesso è solo un rename del temp interno)
+               String key = this.storageService.uploadRawVideo(temp, file.getOriginalFilename());
+               String url = this.storageService.getRawUrl(key);
+               this.mediaRepository.save(new Video(spot, url, key, null));
+           } catch (IOException e) {
                throw new BadRequestException(e.getMessage());
+           } finally {
+               if (temp != null) temp.delete();
            }
        }
     }
@@ -111,7 +109,7 @@ public class MediaService {
                     media.getPublicId()
             );
         } catch (Exception e) {
-            throw new BadRequestException("Error deleting media from storage");
+            throw new BadRequestException(e.getMessage());
         }
         this.mediaRepository.deleteById(id);
     }

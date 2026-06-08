@@ -5,6 +5,8 @@ import org.springframework.stereotype.Service;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+
+import java.io.File;
 import java.io.InputStream;
 import java.util.UUID;
 
@@ -30,48 +32,30 @@ public class StorageService {
         this.s3Client = s3Client;
     }
 
-    public String uploadImage(InputStream inputStream, String fileName, long contentLength){
+    public String uploadImage(File file, String fileName){
         String key = "images/" + UUID.randomUUID() +"/" +fileName;
         PutObjectRequest request = PutObjectRequest.builder()
                 .bucket(bucketProcessed)
                 .key(key)
                 .contentType("image/jpeg")
-                .contentLength(contentLength)
                 .build();
-        s3Client.putObject(request, RequestBody.fromInputStream(inputStream, contentLength));
+        s3Client.putObject(request, RequestBody.fromFile(file));
         return key;
     }
-    public String uploadRawVideo(InputStream inputStream, String fileName, long contentLength){
+    public String uploadRawVideo(File file, String fileName){
         String key = "videos/raw/" + UUID.randomUUID() +"/" +fileName;
         PutObjectRequest request = PutObjectRequest.builder()
                 .bucket(bucketRaw)
                 .key(key)
                 .contentType("video/mp4")
-                .contentLength(contentLength)
                 .build();
-        s3Client.putObject(request, RequestBody.fromInputStream(inputStream, contentLength));
+        s3Client.putObject(request, RequestBody.fromFile(file));
         return key;
     }
     public void delete(String bucket, String key) {
-        var versions = s3Client.listObjectVersions(r -> r
+        s3Client.deleteObject(r -> r
                 .bucket(bucket)
-                .prefix(key)
-        );
-
-        versions.versions().forEach(v ->
-                s3Client.deleteObject(r -> r
-                        .bucket(bucket)
-                        .key(v.key())
-                        .versionId(v.versionId())
-                )
-        );
-
-        versions.deleteMarkers().forEach(m ->
-                s3Client.deleteObject(r -> r
-                        .bucket(bucket)
-                        .key(m.key())
-                        .versionId(m.versionId())
-                )
+                .key(key)
         );
     }
     public String getPublicUrl(String key) {
