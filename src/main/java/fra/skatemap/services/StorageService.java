@@ -53,25 +53,9 @@ public class StorageService {
         return key;
     }
     public void delete(String bucket, String key) {
-        var versions = s3Client.listObjectVersions(r -> r
+        s3Client.deleteObject(r -> r
                 .bucket(bucket)
-                .prefix(key)
-        );
-
-        versions.versions().forEach(v ->
-                s3Client.deleteObject(r -> r
-                        .bucket(bucket)
-                        .key(v.key())
-                        .versionId(v.versionId())
-                )
-        );
-
-        versions.deleteMarkers().forEach(m ->
-                s3Client.deleteObject(r -> r
-                        .bucket(bucket)
-                        .key(m.key())
-                        .versionId(m.versionId())
-                )
+                .key(key)
         );
     }
     public String getPublicUrl(String key) {

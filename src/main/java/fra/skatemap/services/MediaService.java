@@ -121,7 +121,7 @@ public class MediaService {
                     media.getPublicId()
             );
         } catch (Exception e) {
-            throw new BadRequestException("Error deleting media from storage");
+            throw new BadRequestException(e.getMessage());
         }
         this.mediaRepository.deleteById(id);
     }
