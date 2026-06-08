@@ -29,7 +29,7 @@ public class MediaController {
         Spot spot = this.spotService.findSpotById(id);
         this.mediaService.saveImage(spot,files);
     }
-    @PostMapping(value="/video/{id}",consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+   @PostMapping(value="/video/{id}",consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public void  saveVideo(@PathVariable UUID id,@RequestParam("file") List<MultipartFile> files ){
         Spot spot = this.spotService.findSpotById(id);
         this.mediaService.saveVideo(spot,files);
