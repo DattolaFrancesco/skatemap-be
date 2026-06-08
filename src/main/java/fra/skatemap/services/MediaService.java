@@ -45,11 +45,18 @@ public class MediaService {
 
     private String uploadImage(MultipartFile file) {
         try {
-            byte[] resized = resizeImage(file);
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            Thumbnails.of(file.getInputStream())
+                    .size(1280, 720)
+                    .outputQuality(0.80)
+                    .outputFormat("jpg")
+                    .toOutputStream(out);
+            byte[] resized = out.toByteArray();
+            out.reset();
             String key = this.storageService.uploadImage(
                     new ByteArrayInputStream(resized),
-                            file.getOriginalFilename(),
-                            resized.length);
+                    file.getOriginalFilename(),
+                    resized.length);
             return this.storageService.getPublicUrl(key);
         } catch (IOException e) {
             throw new BadRequestException("Error uploading the image");
@@ -63,6 +70,8 @@ public class MediaService {
                 this.mediaRepository.countBySpotAndFormat(spot, "image") + files.size() > 5)
             throw new BadRequestException("you can only upload 5 images");
         for (MultipartFile file : files) {
+            if (file.getSize() > 15 * 1024 * 1024)
+                throw new BadRequestException("Image too large, max 15MB");
             validateMimeType(file, "image");
             String url = uploadImage(file);
             this.mediaRepository.save(new Image(spot, url, extractKeyFromUrl(url)));
@@ -75,7 +84,7 @@ public class MediaService {
         }
     }
     private String extractKeyFromUrl(String url) {
-        return url.substring(url.indexOf("/file/post-processed/") + "/file/post-processed/".length());
+        return url.substring(url.indexOf(".r2.dev/") + ".r2.dev/".length());
     }
 
    @Transactional
