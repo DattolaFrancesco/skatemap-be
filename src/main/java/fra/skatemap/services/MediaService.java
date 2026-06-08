@@ -12,7 +12,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
@@ -50,7 +49,6 @@ public class MediaService {
         }
     }
 
-    @Transactional
     public void saveImage(Spot spot, List<MultipartFile> files) {
         if (files == null || files.isEmpty()) return;
         if (this.mediaRepository.countBySpotAndFormat(spot, "image") > 5 || files.size() > 5 ||
@@ -74,7 +72,6 @@ public class MediaService {
         return url.substring(url.indexOf(".r2.dev/") + ".r2.dev/".length());
     }
 
-   @Transactional
     public void saveVideo(Spot spot, List<MultipartFile> files) {
         if (files == null || files.isEmpty()) return;
         if (this.mediaRepository.countBySpotAndFormat(spot, "video") > 1 || files.size() > 1 ||
