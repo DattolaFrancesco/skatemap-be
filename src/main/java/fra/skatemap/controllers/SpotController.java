@@ -162,7 +162,11 @@ public class SpotController {
         return this.spotService.findListAll(status);
     }
     @GetMapping("/all")
-    public List<SpotListResponseDTO> findAllStatusList( ){
+    public List<SpotListResponseDTO> findAllStatusList(){
         return this.spotService.findListAllStatus();
+    }
+    @GetMapping("/my")
+    public List<SpotListResponseDTO> findAllMyStatusList(@AuthenticationPrincipal User user){
+        return this.spotService.findListAllMyStatus(user);
     }
 }
