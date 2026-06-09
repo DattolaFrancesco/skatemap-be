@@ -58,6 +58,14 @@ public interface SpotRepository extends JpaRepository<Spot, UUID>, JpaSpecificat
     """)
     List<SpotsQueryDTO> findAllStatusForList();
     @Query("""
+    SELECT 
+        new fra.skatemap.payloads.SpotsQueryDTO( 
+            s.id,s.name,s.latitude,s.longitude,s.city,CAST(s.continents AS string),s.risk,s.country,
+            (SELECT m.link FROM Media m WHERE m.spot = s AND TYPE(m) = Image ORDER BY m.id ASC LIMIT 1),s.status)
+            FROM Spot s WHERE s.user.id = :userId  ORDER BY s.id ASC
+    """)
+    List<SpotsQueryDTO> findAllMyStatusForList(UUID userId);
+    @Query("""
     SELECT s.id, st.type.spotType
     FROM Spot s
     JOIN s.spotTypes st

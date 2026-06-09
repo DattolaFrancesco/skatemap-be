@@ -233,7 +233,6 @@ public class SpotService {
             this.deleteById(spot.getId());
             throw new BadRequestException(e.getMessage());
         }
-        //save new info in spot
         modifyById(id,new SpotRequestDTO(
                 modifiedSpotDTO.name(), modifiedSpotDTO.latitude(), modifiedSpotDTO.longitude(),
                 modifiedSpotDTO.description(), modifiedSpotDTO.risk(),modifiedSpotDTO.continent()
@@ -299,6 +298,33 @@ public class SpotService {
     }
     public List<SpotListResponseDTO> findListAllStatus(){
             List<SpotsQueryDTO> spots = this.spotRepository.findAllStatusForList();
+            List<Object[]> typesRaw = this.spotRepository.findAllStatusSpotTypes();
+            Map<UUID,List<String>> typesMap = new HashMap<>();
+            for (Object[] row : typesRaw) {
+                UUID spotId = (UUID) row[0];
+                String type = (String) row[1];
+                typesMap.computeIfAbsent(spotId, k -> new ArrayList<>()).add(type); // find the row if exist it add type otherwise it create the row with type
+            }
+        return spots.stream()
+                .map(s -> new SpotListResponseDTO(
+                        s.id(),
+                        s.name(),
+                        s.latitude(),
+                        s.longitude(),
+                        s.city(),
+                        s.continent(),
+                        s.risk(),
+                        s.country(),
+                        typesMap.getOrDefault(s.id(), List.of()),
+                        s.thumbnailUrl(),
+                        s.status()
+                ))
+                .toList();
+
+    }
+    public List<SpotListResponseDTO> findListAllMyStatus(User user){
+            if(user == null) throw new BadRequestException("user not authenticated");
+            List<SpotsQueryDTO> spots = this.spotRepository.findAllMyStatusForList(user.getId());
             List<Object[]> typesRaw = this.spotRepository.findAllStatusSpotTypes();
             Map<UUID,List<String>> typesMap = new HashMap<>();
             for (Object[] row : typesRaw) {
