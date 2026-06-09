@@ -130,6 +130,7 @@ public class SpotService {
         spot.setRisk(body.risk().toUpperCase());
         spot.setCountry(body.country().toUpperCase());
         spot.setCity(body.city().toUpperCase());
+        spot.setStatus(Status_spot.PENDING);
         spot.setStreet(body.street().toUpperCase());
         if(body.continent() != null){
             Continents c = Continents.AFRICA ;
