@@ -32,12 +32,12 @@ public class StorageService {
         this.s3Client = s3Client;
     }
 
-    public String uploadImage(File file, String fileName){
+    public String uploadImage(File file, String fileName, String contentType){
         String key = "images/" + UUID.randomUUID() +"/" +fileName;
         PutObjectRequest request = PutObjectRequest.builder()
                 .bucket(bucketProcessed)
                 .key(key)
-                .contentType("image/jpeg")
+                .contentType(contentType)
                 .build();
         s3Client.putObject(request, RequestBody.fromFile(file));
         return key;
