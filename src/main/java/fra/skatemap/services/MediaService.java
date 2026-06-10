@@ -35,7 +35,6 @@ public class MediaService {
             temp = File.createTempFile("img-", ".tmp");
             file.transferTo(temp);
             String key = this.storageService.uploadImage(temp, file.getOriginalFilename(), file.getContentType());
-            System.out.println(file.getContentType());
             return this.storageService.getPublicUrl(key);
         } catch (IOException e) {
             throw new BadRequestException("Error uploading the image");
