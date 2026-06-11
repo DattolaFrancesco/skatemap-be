@@ -25,8 +25,6 @@ public class Type {
     public void setSpotType(String spotType) {
         this.spotType = spotType;
     }
-    public void setSpotType() {
-    }
 
     public UUID getId() {
         return id;
@@ -38,6 +36,8 @@ public class Type {
 
     public Type(String spotType) {
         this.spotType = spotType;
+    }
+    public Type() {
     }
 }
 
