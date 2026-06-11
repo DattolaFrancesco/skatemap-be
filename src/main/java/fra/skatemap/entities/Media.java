@@ -11,7 +11,6 @@ import java.util.UUID;
 @Entity
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name = "media_type")
-@NoArgsConstructor
 public class Media {
     @Id
     @GeneratedValue
@@ -67,6 +66,7 @@ public class Media {
         return spot;
     }
 
+    public Media() {}
 
     public Media(Spot spot, String link, String publicId, String format) {
         this.spot = spot;

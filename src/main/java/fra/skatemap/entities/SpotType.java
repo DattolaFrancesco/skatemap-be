@@ -10,8 +10,6 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "spot_types")
-
-@NoArgsConstructor
 public class SpotType {
     @Id
     @GeneratedValue
@@ -51,6 +49,7 @@ public class SpotType {
         return type;
     }
 
+    public  SpotType(){}
     public SpotType(Spot spot, Type type) {
         this.spot = spot;
         this.type = type;

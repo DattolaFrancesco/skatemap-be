@@ -15,7 +15,6 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "users")
-@NoArgsConstructor
 @JsonIgnoreProperties({"accountNonExpired", "accountNonLocked",
         "credentialsNonExpired", "enabled","password","userRoles"})
 public class User implements UserDetails {
@@ -89,6 +88,8 @@ public class User implements UserDetails {
         this.password = password;
         this.name = name;
         this.surname = surname;
+    }
+    public User() {
     }
 
     public String getPassword() {

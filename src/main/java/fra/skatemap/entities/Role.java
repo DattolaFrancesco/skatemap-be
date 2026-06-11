@@ -9,13 +9,14 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "roles")
-@NoArgsConstructor
 public class Role {
     @Id
     @GeneratedValue
     private UUID id;
     @Column(name = "role_name", nullable = false)
     private String roleName;
+    public Role() {
+    }
 
     public void setId(UUID id) {
         this.id = id;

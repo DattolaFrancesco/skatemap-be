@@ -29,7 +29,6 @@ public class AuthController {
         this.usersService = usersService;
     }
 
-    // POST /auth/register
     @PostMapping("/register")
     @ResponseStatus(HttpStatus.CREATED)
     public UsersResponseDTO register(@RequestBody @Validated UsersDTO body, BindingResult validation) {
@@ -44,7 +43,6 @@ public class AuthController {
         return new UsersResponseDTO(user.getId());
     }
 
-    // POST /auth/login
     @PostMapping("/login")
     public TokenResponseDTO login(@RequestBody @Validated LoginDTO body, BindingResult validation) {
         if (validation.hasErrors()) throw new BadRequestException("Credenziali non valide");

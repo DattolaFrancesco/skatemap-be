@@ -8,7 +8,6 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "favourite_spots")
-@NoArgsConstructor
 public class FavouriteSpot {
     @Id
     @GeneratedValue
@@ -47,6 +46,8 @@ public class FavouriteSpot {
         return user;
     }
 
+    public FavouriteSpot() {
+    }
     public FavouriteSpot(Spot spot, User user) {
         this.spot = spot;
         this.user = user;

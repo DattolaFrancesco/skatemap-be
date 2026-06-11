@@ -13,7 +13,6 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "spots")
-@NoArgsConstructor
 public class Spot {
     @Id
     @GeneratedValue
@@ -170,6 +169,8 @@ public class Spot {
         this.user = user;
     }
 
+    public Spot() {
+    }
     public Spot(String description, double latitude, double longitude, String name,
                 String risk, User user, Continents continents, String country, String city, String street) {
         this.description = description;

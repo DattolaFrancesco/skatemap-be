@@ -7,7 +7,6 @@ import lombok.Setter;
 
 @Entity
 @DiscriminatorValue("video")
-
 public class Video extends Media {
     private String thumbnailUrl;
     public Video() {}
