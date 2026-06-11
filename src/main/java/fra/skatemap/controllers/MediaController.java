@@ -25,18 +25,19 @@ public class MediaController {
         this.spotService = spotService;
     }
 
-        @GetMapping("/ffmpeg")
-        public String testFfmpeg() throws Exception {
+    @GetMapping("/test/ffmpeg")
+    public String test() throws Exception {
 
-            System.out.println("FFMPEG TEST START");
+        Process p = new ProcessBuilder("ffmpeg", "-version")
+                .redirectErrorStream(true)
+                .start();
 
-            Process p = new ProcessBuilder("ffmpeg", "-version").start();
-            int exit = p.waitFor();
+        String output = new String(p.getInputStream().readAllBytes());
 
-            System.out.println("FFMPEG TEST DONE");
+        int code = p.waitFor();
 
-            return "exit code = " + exit;
-        }
+        return "code=" + code + "\n" + output;
+    }
 
     @PostMapping(value="/image/{id}",consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public void  saveImage(@PathVariable UUID id,@RequestParam("file") List<MultipartFile> files ){
