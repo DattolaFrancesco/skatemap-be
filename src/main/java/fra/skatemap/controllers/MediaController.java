@@ -25,7 +25,7 @@ public class MediaController {
         this.spotService = spotService;
     }
 
-    @GetMapping("/test/ffmpeg")
+    @GetMapping("/ffmpeg")
     public String test() throws Exception {
 
         Process p = new ProcessBuilder("ffmpeg", "-version")
