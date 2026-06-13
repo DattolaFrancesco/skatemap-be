@@ -20,8 +20,6 @@ public class StorageService {
     @Value("${cloudflare.bucket-processed}")
     private String bucketProcessed;
 
-    @Value("${cloudflare.endpoint}")
-    private String endpoint;
 
     @Value("${cloudflare.public.url}")
     private String publicUrl;
