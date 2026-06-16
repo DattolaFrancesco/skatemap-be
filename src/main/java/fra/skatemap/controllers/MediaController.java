@@ -4,6 +4,8 @@ import fra.skatemap.entities.Media;
 import fra.skatemap.entities.Spot;
 import fra.skatemap.enums.Status_spot;
 import fra.skatemap.payloads.SpotResponseDTO;
+import fra.skatemap.payloads.YtAllRequest;
+import fra.skatemap.payloads.YtDTORequest;
 import fra.skatemap.services.MediaService;
 import fra.skatemap.services.SpotService;
 import org.springframework.data.domain.Page;
@@ -58,5 +60,13 @@ public class MediaController {
                                             @RequestParam(defaultValue = "0") int page,
                                             @RequestParam(defaultValue = "20") int size){
         return this.mediaService.findAllMediaByIdAndType(id,type,page,size);
+    }
+    @GetMapping("/yt/{id}")
+    public String getVideo(@PathVariable UUID id){
+        return  this.mediaService.getVideo(id);
+    }
+    @PutMapping("/addYt")
+    public String saveYtVideoTest(@RequestBody List<YtAllRequest> body){
+        return this.mediaService.setYtAllVideo(body);
     }
 }
