@@ -17,7 +17,6 @@ public class Media {
     private UUID id;
     @Column(nullable = false)
     private String link;
-    @Column(nullable = false)
     private String publicId;
     @Column(nullable = false)
     private String format;

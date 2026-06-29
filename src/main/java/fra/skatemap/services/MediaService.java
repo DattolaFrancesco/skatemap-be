@@ -6,6 +6,7 @@ import fra.skatemap.entities.Spot;
 import fra.skatemap.entities.Video;
 import fra.skatemap.exceptions.BadRequestException;
 import fra.skatemap.exceptions.NotFoundException;
+import fra.skatemap.payloads.YtAllRequest;
 import fra.skatemap.repositories.MediaRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -70,8 +71,8 @@ public class MediaService {
     @Transactional
     public void saveVideo(Spot spot, List<MultipartFile> files) {
         if (files == null || files.isEmpty()) return;
-        if (this.mediaRepository.countBySpotAndFormat(spot, "video") + files.size() > 1)
-            throw new BadRequestException("you can only upload 1 videos");
+        if (this.mediaRepository.countBySpotAndFormat(spot, "video") + files.size() > 3)
+            throw new BadRequestException("you can only upload 3 videos");
         for (MultipartFile file : files) {
             File temp = null;
             try {
@@ -88,6 +89,26 @@ public class MediaService {
             }
         }
     }
+    @Transactional
+    public String getVideo(UUID id){
+       Media video = findById(id);
+       Video vid = (Video) video;
+        return vid.getLink() + " " + vid.getPublicId() + " " + vid.getStatus();
+    }
+    @Transactional
+    public String setYtAllVideo(List<YtAllRequest> body){
+        for(YtAllRequest bodies : body){
+           Media video = findById(UUID.fromString(bodies.id()));
+           Video vid = (Video) video;
+           String publicId = vid.getPublicId();
+           vid.setStatus("DONE");
+           vid.setLink(bodies.link());
+           vid.setPublicId(null);
+           this.mediaRepository.save(vid);
+           this.storageService.delete("post-raw",publicId);
+        }
+        return  "video changed";
+    }
 
     public Media findById(UUID id) {
         return this.mediaRepository.findById(id).orElseThrow(() -> new NotFoundException("media not found"));
@@ -95,6 +116,13 @@ public class MediaService {
 
     public void deleteById(UUID id) {
         Media media = findById(id);
+        if(media.getFormat().equals("video")){
+            Video video = (Video) media;
+            if(video.getStatus().equals("DONE")) {
+                this.mediaRepository.deleteById(id);
+                return;
+            }
+        }
         try {
             this.storageService.delete(
                     media instanceof Video ? "post-raw" : "post-processed",

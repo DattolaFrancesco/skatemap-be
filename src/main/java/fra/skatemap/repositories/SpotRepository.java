@@ -37,7 +37,7 @@ public interface SpotRepository extends JpaRepository<Spot, UUID>, JpaSpecificat
     @Query("""
     SELECT 
         new fra.skatemap.payloads.SpotsQueryDTO( 
-            s.id,s.name,s.latitude,s.longitude,s.city,CAST(s.continents AS string),s.risk,s.country,
+            s.id,s.name,s.latitude,s.longitude,s.city,CAST(s.continents AS string),s.risk,s.country,s.street,
             (SELECT m.link FROM Media m WHERE m.spot = s AND TYPE(m) = Image ORDER BY m.id ASC LIMIT 1),s.status)
             FROM Spot s WHERE s.status = :status ORDER BY s.id ASC
     """)
@@ -52,7 +52,7 @@ public interface SpotRepository extends JpaRepository<Spot, UUID>, JpaSpecificat
     @Query("""
     SELECT 
         new fra.skatemap.payloads.SpotsQueryDTO( 
-            s.id,s.name,s.latitude,s.longitude,s.city,CAST(s.continents AS string),s.risk,s.country,
+            s.id,s.name,s.latitude,s.longitude,s.city,CAST(s.continents AS string),s.risk,s.country,s.street,
             (SELECT m.link FROM Media m WHERE m.spot = s AND TYPE(m) = Image ORDER BY m.id ASC LIMIT 1),s.status)
             FROM Spot s  ORDER BY s.id ASC
     """)
@@ -60,7 +60,7 @@ public interface SpotRepository extends JpaRepository<Spot, UUID>, JpaSpecificat
     @Query("""
     SELECT 
         new fra.skatemap.payloads.SpotsQueryDTO( 
-            s.id,s.name,s.latitude,s.longitude,s.city,CAST(s.continents AS string),s.risk,s.country,
+            s.id,s.name,s.latitude,s.longitude,s.city,CAST(s.continents AS string),s.risk,s.country,s.street,
             (SELECT m.link FROM Media m WHERE m.spot = s AND TYPE(m) = Image ORDER BY m.id ASC LIMIT 1),s.status)
             FROM Spot s WHERE s.user.id = :userId  ORDER BY s.id ASC
     """)
