@@ -13,6 +13,7 @@ public record SpotsQueryDTO(
         String continent,
         String risk,
         String country,
+        String street,
         String thumbnailUrl,
         Status_spot status
 ) {

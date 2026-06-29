@@ -14,6 +14,7 @@ public record SpotListResponseDTO(
         String continent,
         String risk,
         String country,
+        String street,
         List<String> spotTypes,
         String thumbnailUrl,
         Status_spot status

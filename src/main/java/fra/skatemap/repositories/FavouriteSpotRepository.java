@@ -27,6 +27,7 @@ public interface FavouriteSpotRepository extends JpaRepository<FavouriteSpot, UU
         CAST(f.spot.continents AS string),
         f.spot.risk,
         f.spot.country,
+        f.spot.street,
         (SELECT m.link FROM Media m WHERE m.spot = f.spot AND TYPE(m) = Image ORDER BY m.id ASC LIMIT 1),
         f.spot.status
     )

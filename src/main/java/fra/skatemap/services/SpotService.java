@@ -290,6 +290,7 @@ public class SpotService {
                         s.continent(),
                         s.risk(),
                         s.country(),
+                        s.street(),
                         typesMap.getOrDefault(s.id(), List.of()),
                         s.thumbnailUrl(),
                         s.status()
@@ -316,6 +317,7 @@ public class SpotService {
                         s.continent(),
                         s.risk(),
                         s.country(),
+                        s.street(),
                         typesMap.getOrDefault(s.id(), List.of()),
                         s.thumbnailUrl(),
                         s.status()
@@ -343,6 +345,7 @@ public class SpotService {
                         s.continent(),
                         s.risk(),
                         s.country(),
+                        s.street(),
                         typesMap.getOrDefault(s.id(), List.of()),
                         s.thumbnailUrl(),
                         s.status()

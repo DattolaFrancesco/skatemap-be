@@ -2,10 +2,7 @@ package fra.skatemap.controllers;
 
 import fra.skatemap.entities.FavouriteSpot;
 import fra.skatemap.entities.User;
-import fra.skatemap.payloads.FavouriteSpotResponseDTO;
-import fra.skatemap.payloads.SpotMinimalResponseDTO;
-import fra.skatemap.payloads.SpotResponseDTO;
-import fra.skatemap.payloads.SpotsQueryDTO;
+import fra.skatemap.payloads.*;
 import fra.skatemap.services.FavouriteSpotService;
 import org.springframework.data.domain.Page;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -32,7 +29,7 @@ public class FavouriteSpotController {
         return this.favouriteSpotService.findSingleFav(spotId, user);
     }
     @GetMapping("/all")
-    public List<SpotsQueryDTO> findFav(@AuthenticationPrincipal User user){
+    public List<SpotListResponseDTO> findFav(@AuthenticationPrincipal User user){
         return this.favouriteSpotService.findFav(user);
     }
     @DeleteMapping("/{spotId}")
