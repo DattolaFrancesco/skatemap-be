@@ -8,6 +8,8 @@ import fra.skatemap.exceptions.BadRequestException;
 import fra.skatemap.exceptions.NotFoundException;
 import fra.skatemap.payloads.YtAllRequest;
 import fra.skatemap.repositories.MediaRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -21,6 +23,9 @@ import java.util.UUID;
 
 @Service
 public class MediaService {
+
+    private static final Logger log = LoggerFactory.getLogger(MediaService.class);
+
     private final MediaRepository mediaRepository;
     private final StorageService storageService;
 
@@ -37,9 +42,15 @@ public class MediaService {
             String key = this.storageService.uploadImage(temp, file.getOriginalFilename(), file.getContentType());
             return this.storageService.getPublicUrl(key);
         } catch (IOException e) {
-            throw new BadRequestException("Error uploading the image");
+            log.error("IOException while writing temp file for image upload", e);
+            throw new BadRequestException("Error uploading the image: " + e.getMessage());
+        } catch (Exception e) {
+            log.error("Storage upload failed for image '{}'", file.getOriginalFilename(), e);
+            throw new BadRequestException("Image storage upload failed: " + e.getMessage());
         } finally {
-            if (temp != null) temp.delete();
+            if (temp != null && !temp.delete()) {
+                log.warn("Could not delete temp file: {}", temp.getAbsolutePath());
+            }
         }
     }
 
@@ -65,7 +76,16 @@ public class MediaService {
     }
 
     private String extractKeyFromUrl(String url) {
-        return url.substring(url.indexOf(".r2.dev/") + ".r2.dev/".length());
+        int idx = url.indexOf(".r2.dev/");
+        if (idx == -1) {
+            // url non nel formato atteso: meglio fallire con un messaggio chiaro
+            // che con una StringIndexOutOfBoundsException criptica (-1 + 8 = 7,
+            // che avrebbe potuto anche non esplodere subito ma tagliare la stringa
+            // a caso, salvando una key sbagliata in DB)
+            log.error("Unexpected media URL format, cannot extract R2 key: {}", url);
+            throw new BadRequestException("Unexpected storage URL format");
+        }
+        return url.substring(idx + ".r2.dev/".length());
     }
 
     @Transactional
@@ -83,31 +103,49 @@ public class MediaService {
                 String url = this.storageService.getRawUrl(key);
                 this.mediaRepository.save(new Video(spot, url, key, null));
             } catch (IOException e) {
-                throw new BadRequestException(e.getMessage());
+                log.error("IOException while writing temp file for video upload", e);
+                throw new BadRequestException("Error uploading the video: " + e.getMessage());
+            } catch (Exception e) {
+                // stesso discorso delle immagini: cattura anche gli errori S3/R2,
+                // non solo IOException, cosi' la transazione fallisce con un
+                // messaggio leggibile invece di un rollback silenzioso.
+                log.error("Storage upload failed for video '{}'", file.getOriginalFilename(), e);
+                throw new BadRequestException("Video storage upload failed: " + e.getMessage());
             } finally {
-                if (temp != null) temp.delete();
+                if (temp != null && !temp.delete()) {
+                    log.warn("Could not delete temp file: {}", temp.getAbsolutePath());
+                }
             }
         }
     }
+
     @Transactional
-    public String getVideo(UUID id){
-       Media video = findById(id);
-       Video vid = (Video) video;
+    public String getVideo(UUID id) {
+        Media video = findById(id);
+        Video vid = (Video) video;
         return vid.getLink() + " " + vid.getPublicId() + " " + vid.getStatus();
     }
+
     @Transactional
-    public String setYtAllVideo(List<YtAllRequest> body){
-        for(YtAllRequest bodies : body){
-           Media video = findById(UUID.fromString(bodies.id()));
-           Video vid = (Video) video;
-           String publicId = vid.getPublicId();
-           vid.setStatus("DONE");
-           vid.setLink(bodies.link());
-           vid.setPublicId(null);
-           this.mediaRepository.save(vid);
-           this.storageService.delete("post-raw",publicId);
+    public String setYtAllVideo(List<YtAllRequest> body) {
+        for (YtAllRequest bodies : body) {
+            Media video = findById(UUID.fromString(bodies.id()));
+            Video vid = (Video) video;
+            String publicId = vid.getPublicId();
+            vid.setStatus("DONE");
+            vid.setLink(bodies.link());
+            vid.setPublicId(null);
+            this.mediaRepository.save(vid);
+            try {
+                this.storageService.delete("post-raw", publicId);
+            } catch (Exception e) {
+                // qui un fallimento di delete su R2 non deve far rollback-are
+                // l'intero giro di video gia' marcati DONE: logghiamo e proseguiamo,
+                // il file raw resta orfano su R2 ma il dato in DB e' corretto.
+                log.error("Failed to delete raw video '{}' from storage after marking DONE", publicId, e);
+            }
         }
-        return  "video changed";
+        return "video changed";
     }
 
     public Media findById(UUID id) {
@@ -116,9 +154,9 @@ public class MediaService {
 
     public void deleteById(UUID id) {
         Media media = findById(id);
-        if(media.getFormat().equals("video")){
+        if (media.getFormat().equals("video")) {
             Video video = (Video) media;
-            if(video.getStatus().equals("DONE")) {
+            if (video.getStatus().equals("DONE")) {
                 this.mediaRepository.deleteById(id);
                 return;
             }
@@ -129,6 +167,7 @@ public class MediaService {
                     media.getPublicId()
             );
         } catch (Exception e) {
+            log.error("Failed to delete media '{}' from storage", media.getPublicId(), e);
             throw new BadRequestException(e.getMessage());
         }
         this.mediaRepository.deleteById(id);
@@ -143,4 +182,3 @@ public class MediaService {
         };
     }
 }
-

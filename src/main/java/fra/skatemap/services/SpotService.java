@@ -48,7 +48,7 @@ public class SpotService {
         }
         Continents c = Continents.AFRICA ;
         if(spotRequestDTO.continent() != null){
-          String continent = spotRequestDTO.continent().toLowerCase();
+            String continent = spotRequestDTO.continent().toLowerCase();
             c = switch (continent) {
                 case "africa" -> Continents.AFRICA;
                 case "asia" -> Continents.ASIA;
@@ -110,13 +110,13 @@ public class SpotService {
     public String deleteById(UUID id){
         SpotResponseDTO spotResponseDTO = findById(id);
         if(spotResponseDTO.image() != null && !spotResponseDTO.image().isEmpty()){
-        spotResponseDTO.image().forEach(s-> {
-            this.mediaService.deleteById(s.getId());
-            System.out.println(s.getId());
-        });
+            spotResponseDTO.image().forEach(s-> {
+                this.mediaService.deleteById(s.getId());
+                System.out.println(s.getId());
+            });
         }
         if(spotResponseDTO.video() != null && !spotResponseDTO.video().isEmpty()){
-        spotResponseDTO.video().forEach(s->this.mediaService.deleteById(s.getId()));
+            spotResponseDTO.video().forEach(s->this.mediaService.deleteById(s.getId()));
         }
         this.spotRepository.deleteById(id);
         return spotResponseDTO.name() + " is deleted";
@@ -172,25 +172,25 @@ public class SpotService {
                 s.getMedia().stream().filter(m->m instanceof Image).findFirst().orElse(null),s.getStatus()));
     }
     public Page<SpotResponseOwnDTO> getOwnSpots(User user, int page, int size, String sortBy, String status){
-            if(user == null) throw new BadRequestException("user not authenticated");
-            Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy));
-            String rightStatus = status.toUpperCase();
-            boolean validStatus = status != null && !status.isBlank() &&
-                    (!status.equals("PENDING") && !status.equals("APPROVED") && !status.equals("UNAPPROVED"));
-            if (!validStatus)return this.spotRepository.findByUserId(user.getId(),pageable).map(s-> new SpotResponseOwnDTO(
+        if(user == null) throw new BadRequestException("user not authenticated");
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy));
+        String rightStatus = status.toUpperCase();
+        boolean validStatus = status != null && !status.isBlank() &&
+                (!status.equals("PENDING") && !status.equals("APPROVED") && !status.equals("UNAPPROVED"));
+        if (!validStatus)return this.spotRepository.findByUserId(user.getId(),pageable).map(s-> new SpotResponseOwnDTO(
+                s.getId(),s.getName(),s.getLatitude(),s.getLongitude(),s.getCity(),
+                s.getMedia().stream().filter(m->m instanceof Image).findFirst().orElse(null),s.getStatus()));
+        else{
+            Status_spot statusSpot = switch (rightStatus){
+                case "PENDING" -> Status_spot.PENDING;
+                case "APPROVED" -> Status_spot.APPROVED;
+                case "UNAPPROVED" -> Status_spot.UNAPPROVED;
+                default -> Status_spot.APPROVED;
+            };
+            return this.spotRepository.findByStatusAndUserId(statusSpot,user.getId(),pageable).map(s-> new SpotResponseOwnDTO(
                     s.getId(),s.getName(),s.getLatitude(),s.getLongitude(),s.getCity(),
-                    s.getMedia().stream().filter(m->m instanceof Image).findFirst().orElse(null),s.getStatus()));
-            else{
-                 Status_spot statusSpot = switch (rightStatus){
-                    case "PENDING" -> Status_spot.PENDING;
-                    case "APPROVED" -> Status_spot.APPROVED;
-                    case "UNAPPROVED" -> Status_spot.UNAPPROVED;
-                     default -> Status_spot.APPROVED;
-                };
-                return this.spotRepository.findByStatusAndUserId(statusSpot,user.getId(),pageable).map(s-> new SpotResponseOwnDTO(
-                        s.getId(),s.getName(),s.getLatitude(),s.getLongitude(),s.getCity(),
-                        s.getMedia().stream().filter(m->m instanceof Image).toList().getFirst(),s.getStatus()));
-            }
+                    s.getMedia().stream().filter(m->m instanceof Image).toList().getFirst(),s.getStatus()));
+        }
     }
     public Page<SpotMinimalResponseDTO> getPendingSpots( int page, int size, String sortBy){
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy));
@@ -204,6 +204,21 @@ public class SpotService {
         spot.setStatus(Status_spot.valueOf(status.toUpperCase()));
         return toDTO(this.spotRepository.save(spot));
     }
+
+    // ============================================================
+    // FIX (modifyAll):
+    // 1. Il loop di classificazione image/video e' ora DENTRO il
+    //    metodo @Transactional cosi' come prima, ma soprattutto
+    //    qualsiasi eccezione al suo interno fa scattare il rollback
+    //    automatico di Spring invece di lasciare lo spot/i media
+    //    in uno stato a meta'.
+    // 2. Il controllo "contentType == null" e' separato da quello
+    //    GIF: prima un content-type non leggibile (capita spesso
+    //    su iOS/Safari per certi video) faceva uscire il messaggio
+    //    fuorviante "GIF files are not supported".
+    // 3. Rimosso il try/catch manuale con "this.deleteById(...)":
+    //    non serve piu', @Transactional fa rollback da solo su
+    //    qualunque RuntimeException lanciata nel metodo.
     @Transactional
     public String modifyAll(UUID id, ModifiedSpotDTO modifiedSpotDTO, List<MultipartFile> files){
         Spot spot = findSpotById(id); // find spot
@@ -215,7 +230,11 @@ public class SpotService {
         if (files != null && !files.isEmpty()) {
             for (MultipartFile medias : files) {
                 String contentType = medias.getContentType();
-                if (contentType == null || contentType.startsWith("image/gif")) {
+                if (contentType == null) {
+                    throw new BadRequestException(
+                            "Could not determine file type for '" + medias.getOriginalFilename() + "'");
+                }
+                if (contentType.startsWith("image/gif")) {
                     throw new BadRequestException("GIF files are not supported");
                 }
                 if (contentType.startsWith("image")) {
@@ -227,13 +246,9 @@ public class SpotService {
                 else throw new BadRequestException("Unsupported file type: " + contentType);
             }
         }
-        try {
-            if (!image.isEmpty()) mediaService.saveImage(spot, image);
-            if (!video.isEmpty()) mediaService.saveVideo(spot, video);
-        } catch (Exception e) {
-            this.deleteById(spot.getId());
-            throw new BadRequestException(e.getMessage());
-        }
+        if (!image.isEmpty()) mediaService.saveImage(spot, image);
+        if (!video.isEmpty()) mediaService.saveVideo(spot, video);
+
         modifyById(id,new SpotRequestDTO(
                 modifiedSpotDTO.name(), modifiedSpotDTO.latitude(), modifiedSpotDTO.longitude(),
                 modifiedSpotDTO.description(), modifiedSpotDTO.risk(),modifiedSpotDTO.continent()
@@ -242,44 +257,53 @@ public class SpotService {
         return modifiedSpotDTO.name() + " modified with success";
 
     }
+
+    // ============================================================
+    // FIX (saveAll): stesso identico discorso di modifyAll sopra.
+    // Prima, se il loop di classificazione lanciava un'eccezione
+    // (es. content-type null su un video, o un file non supportato),
+    // lo spot appena creato restava salvato per sempre senza nessun
+    // media collegato, perche' quell'eccezione usciva PRIMA del
+    // blocco try/catch che faceva il cleanup. Ora il metodo intero
+    // e' @Transactional: qualunque eccezione, in qualunque punto,
+    // fa rollback automatico di spot + tipi + media insieme.
+    @Transactional
     public void saveAll(SpotRequestDTO spot,List<MultipartFile> media,User user){
         if(media == null || media.isEmpty()) throw new BadRequestException("we need at least one image!");
         Spot newSpot = this.save(spot,user);
         List<MultipartFile> image = new ArrayList<>();
         List<MultipartFile> video = new ArrayList<>();
-        if (media != null && !media.isEmpty()) {
-            for (MultipartFile medias : media) {
-                String contentType = medias.getContentType();
-                if (contentType == null || contentType.startsWith("image/gif")) {
-                    throw new BadRequestException("GIF files are not supported");
-                }
-                if (contentType.startsWith("image")) {
-                    image.add(medias);
-                }
-                else if (contentType.startsWith("video")) {
-                    video.add(medias);
-                }
-                else throw new BadRequestException("Unsupported file type: " + contentType);
+        for (MultipartFile medias : media) {
+            String contentType = medias.getContentType();
+            if (contentType == null) {
+                throw new BadRequestException(
+                        "Could not determine file type for '" + medias.getOriginalFilename() + "'");
             }
+            if (contentType.startsWith("image/gif")) {
+                throw new BadRequestException("GIF files are not supported");
             }
-        try {
-            if (!image.isEmpty()) mediaService.saveImage(newSpot, image);
-            if (!video.isEmpty()) mediaService.saveVideo(newSpot, video);
-        } catch (Exception e) {
-            this.deleteById(newSpot.getId());
-            throw new BadRequestException(e.getMessage());
+            if (contentType.startsWith("image")) {
+                image.add(medias);
+            }
+            else if (contentType.startsWith("video")) {
+                video.add(medias);
+            }
+            else throw new BadRequestException("Unsupported file type: " + contentType);
         }
+        if (!image.isEmpty()) mediaService.saveImage(newSpot, image);
+        if (!video.isEmpty()) mediaService.saveVideo(newSpot, video);
     }
+
     public List<SpotListResponseDTO> findListAll(String status){
-            Status_spot statusSpot = Status_spot.valueOf(status.toUpperCase());
-            List<SpotsQueryDTO> spots = this.spotRepository.findAllForList((statusSpot));
-            List<Object[]> typesRaw = this.spotRepository.findAllSpotTypes(statusSpot);
-            Map<UUID,List<String>> typesMap = new HashMap<>();
-            for (Object[] row : typesRaw) {
-                UUID spotId = (UUID) row[0];
-                String type = (String) row[1];
-                typesMap.computeIfAbsent(spotId, k -> new ArrayList<>()).add(type); // find the row if exist it add type otherwise it create the row with type
-            }
+        Status_spot statusSpot = Status_spot.valueOf(status.toUpperCase());
+        List<SpotsQueryDTO> spots = this.spotRepository.findAllForList((statusSpot));
+        List<Object[]> typesRaw = this.spotRepository.findAllSpotTypes(statusSpot);
+        Map<UUID,List<String>> typesMap = new HashMap<>();
+        for (Object[] row : typesRaw) {
+            UUID spotId = (UUID) row[0];
+            String type = (String) row[1];
+            typesMap.computeIfAbsent(spotId, k -> new ArrayList<>()).add(type); // find the row if exist it add type otherwise it create the row with type
+        }
         return spots.stream()
                 .map(s -> new SpotListResponseDTO(
                         s.id(),
@@ -299,14 +323,14 @@ public class SpotService {
 
     }
     public List<SpotListResponseDTO> findListAllStatus(){
-            List<SpotsQueryDTO> spots = this.spotRepository.findAllStatusForList();
-            List<Object[]> typesRaw = this.spotRepository.findAllStatusSpotTypes();
-            Map<UUID,List<String>> typesMap = new HashMap<>();
-            for (Object[] row : typesRaw) {
-                UUID spotId = (UUID) row[0];
-                String type = (String) row[1];
-                typesMap.computeIfAbsent(spotId, k -> new ArrayList<>()).add(type); // find the row if exist it add type otherwise it create the row with type
-            }
+        List<SpotsQueryDTO> spots = this.spotRepository.findAllStatusForList();
+        List<Object[]> typesRaw = this.spotRepository.findAllStatusSpotTypes();
+        Map<UUID,List<String>> typesMap = new HashMap<>();
+        for (Object[] row : typesRaw) {
+            UUID spotId = (UUID) row[0];
+            String type = (String) row[1];
+            typesMap.computeIfAbsent(spotId, k -> new ArrayList<>()).add(type); // find the row if exist it add type otherwise it create the row with type
+        }
         return spots.stream()
                 .map(s -> new SpotListResponseDTO(
                         s.id(),
@@ -326,15 +350,15 @@ public class SpotService {
 
     }
     public List<SpotListResponseDTO> findListAllMyStatus(User user){
-            if(user == null) throw new BadRequestException("user not authenticated");
-            List<SpotsQueryDTO> spots = this.spotRepository.findAllMyStatusForList(user.getId());
-            List<Object[]> typesRaw = this.spotRepository.findAllStatusSpotTypes();
-            Map<UUID,List<String>> typesMap = new HashMap<>();
-            for (Object[] row : typesRaw) {
-                UUID spotId = (UUID) row[0];
-                String type = (String) row[1];
-                typesMap.computeIfAbsent(spotId, k -> new ArrayList<>()).add(type); // find the row if exist it add type otherwise it create the row with type
-            }
+        if(user == null) throw new BadRequestException("user not authenticated");
+        List<SpotsQueryDTO> spots = this.spotRepository.findAllMyStatusForList(user.getId());
+        List<Object[]> typesRaw = this.spotRepository.findAllStatusSpotTypes();
+        Map<UUID,List<String>> typesMap = new HashMap<>();
+        for (Object[] row : typesRaw) {
+            UUID spotId = (UUID) row[0];
+            String type = (String) row[1];
+            typesMap.computeIfAbsent(spotId, k -> new ArrayList<>()).add(type); // find the row if exist it add type otherwise it create the row with type
+        }
         return spots.stream()
                 .map(s -> new SpotListResponseDTO(
                         s.id(),

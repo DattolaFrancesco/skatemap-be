@@ -44,8 +44,9 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of(
+        configuration.setAllowedOriginPatterns(List.of(
                 "http://localhost:3000",
+                "http://192.168.*.*:3000",
                 "https://skatemap-frontend.vercel.app"
         ));
         configuration.setAllowedMethods(List.of("*"));
